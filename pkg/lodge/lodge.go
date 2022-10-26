@@ -5,16 +5,13 @@ import (
 )
 
 type Lodge struct{
-	Fqdn [120] byte
-	Subn [120] byte
-	Path [120] byte
-	Name [120] byte
-	Size uint64
 	Htop uint32
 	Ptop uint32
 	Rtop uint32
 	X    uint32
-	Y    uint64
+	Fqdn [126] byte
+	Subn [126] byte
+	Bdev [256] byte
 }
 
 type Hash [28] byte
