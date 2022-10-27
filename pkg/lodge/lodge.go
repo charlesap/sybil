@@ -5,10 +5,6 @@ import (
 )
 
 type Lodge struct{
-	Htop uint32
-	Ptop uint32
-	Rtop uint32
-	X    uint32
 	Fqdn [126] byte
 	Subn [126] byte
 	Bdev [256] byte
@@ -51,6 +47,8 @@ func Format() { // write 28 zeros at every 256th location to empty all blocks
 }
 
 func Retrieve() { // hash and bounce (hash again, look again) until match or zeros
+	// a (very unlikely) hash resulting in all zeros is simply hashed again.
+
 
 }
 
@@ -66,3 +64,4 @@ func Writeout() { // iteratively retrieve from the lodge and write to text file
 
 }
 
+func Init() { // since nothing will hash to zero, the zero block is the root block for H, P, and R.
