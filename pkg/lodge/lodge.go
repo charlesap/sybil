@@ -35,6 +35,7 @@ type Mesg struct{ // 256 bytes
 type Body struct{
 	Ones Hash  // all zeros = empty all ones = text otherwise Mesg
 	Text [228] byte // all utf8, null terminated, if no null then continues next block
+	                // if Text[0] is null then text is special (image? movie?), Text[1-227] details.
 }
 
 func Emit(name string) {
