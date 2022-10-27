@@ -23,7 +23,7 @@ type Mesg struct{ // 256 bytes
 	Op   byte
 	Time [7] byte
 	H    Span
-	Fld1 byte
+	Pd   byte  // principal signer depth, 1 = self
 	Acc1 [3] byte
 	Fld2 byte
 	Acc2 [3] byte
@@ -43,10 +43,10 @@ type Body struct{ // 252 possble bytes of text
 	Text2 [63] byte
 	Pad3 byte  // all zeros = empty all ones = text otherwise Mesg
 	Text3 [63] byte
-	Pad4 byte  // unused but left for symetry
+	Len  byte  // of this text segment not including null, 255 = continue next block
 	Text4 [63] byte
-	                // all utf8, null terminated, if no null then continues next block
-	                // if Text1[0] is null then text is special (image? movie?)
+	                // all utf8
+	                // if Len is 254 then text is null terminated special reference (image? movie?)
 }
 
 func Emit(name string) {
