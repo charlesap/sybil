@@ -18,26 +18,51 @@ type Hash [28] byte
 
 type Sign [64] byte
 
-type Span struct{ // 64 bytes * 3 spans per message
+type Span struct{ // 56 bytes 
 	Hsh Hash
-	Loc uint32
-	Lnk [8] uint32
+	Lnk [7] uint32
 }
 
-type Mdta struct{ // 32 bytes
-	Dnt uint64
-	Opr uint32
-	Acc [5] uint32
+type Mesg struct{ // 256 bytes
+	H    Span
+	Time [7] byte
+	Op   byte
+	P    Span
+	Acc1 uint32
+	Acc2 uint32
+	R    Span
+	Acc3 uint32
+	Acc4 uint32
+	S    Sign
 }
 
-type Tiny [64] byte
-type Smol [128] byte
-type Medm [256] byte
-type Larg [512] byte
-type Huge [1024] byte
+type Body struct{
+	Ones Hash  // all zeros = empty all ones = text otherwise Mesg
+	Text [228] byte
+}
 
 func Emit(name string) {
 
 	fmt.Println( name )
+}
+
+func Format() { // write 28 zeros at every 256th location to empty all blocks
+
+}
+
+func Retrieve() { // hash and bounce (hash again, look again) until match or zeros
+
+}
+
+func Place() { // hash and bounce until match (e.g. exists) or zeros, in which write.
+
+}
+
+func Readin() { // iteratively load from text file and place in the lodge
+
+}
+
+func Writeout() { // iteratively retrieve from the lodge and write to text file
+
 }
 
