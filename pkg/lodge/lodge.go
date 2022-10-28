@@ -30,14 +30,14 @@ type Mesg struct{ // 256 bytes
 	Time [7] byte
 	H    Span7
 	Pd   byte  // principal signer depth, 1 = self
+	Salt [3] byte
+	Fld1 byte
 	Acc1 [3] byte
+	P    Span6
 	Fld2 byte
 	Acc2 [3] byte
-	P    Span6
 	Fld3 byte
 	Acc3 [3] byte
-	Fld4 byte
-	Acc4 [3] byte
 	R    Span6
 	S    Sign
 }
