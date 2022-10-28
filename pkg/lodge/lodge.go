@@ -14,25 +14,31 @@ type Hash [28] byte
 
 type Sign [64] byte
 
-type Span struct{ // 56 bytes 
+type Span7 struct{ // 56 bytes 
 	Hsh Hash
 	Lnk [7] uint32
+}
+
+type Span6 struct{ // 56 bytes 
+	Hsh Hash
+	Top uint32
+	Lnk [6] uint32
 }
 
 type Mesg struct{ // 256 bytes
 	Op   byte
 	Time [7] byte
-	H    Span
+	H    Span7
 	Pd   byte  // principal signer depth, 1 = self
 	Acc1 [3] byte
 	Fld2 byte
 	Acc2 [3] byte
-	P    Span
+	P    Span6
 	Fld3 byte
 	Acc3 [3] byte
 	Fld4 byte
 	Acc4 [3] byte
-	R    Span
+	R    Span6
 	S    Sign
 }
 
