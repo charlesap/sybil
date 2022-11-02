@@ -14,19 +14,21 @@ type Hash [28] byte
 
 type Sign [64] byte
 
+type Kndx  uint32 // index of a Knod in block device of Knods
+
 type Span7 struct{ // 56 bytes 
 	Hsh Hash
-	Lnk [7] uint32
+	Lnk [7] Kndx
 }
 
 type Span6 struct{ // 56 bytes 
 	Hsh Hash
-	Top uint32
-	Lnk [6] uint32
+	Top Kndx
+	Lnk [6] Kndx
 }
 
-type Mesg struct{ // 256 bytes
-	Op   byte
+type Knod struct{ // 256 bytes // knowledge node, Tnod is a text representation
+	Op   byte  // op except 0 = hash slot free, 255 = hash slot available due to allocation bounce on content size
 	Time [7] byte
 	H    Span7
 	Pd   byte  // principal signer depth, 1 = self
@@ -34,7 +36,7 @@ type Mesg struct{ // 256 bytes
 	Fld1 byte
 	Acc1 [3] byte
 	P    Span6
-	Fld2 byte
+	Fld2 byte 
 	Acc2 [3] byte
 	Fld3 byte
 	Acc3 [3] byte
