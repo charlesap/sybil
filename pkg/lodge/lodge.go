@@ -16,6 +16,9 @@ type Sign [64] byte
 
 type Kndx  uint32 // index of a Knod in block device of Knods
 
+type Cksm  uint32 // checksum of checksums of nodes held by this node or
+                  // checksum of checksums of nodes referring to this node
+
 type Span7 struct{ // 56 bytes 
 	Hsh Hash
 	Lnk [7] Kndx
@@ -31,15 +34,12 @@ type Knod struct{ // 256 bytes // knowledge node, Tnod is a text representation
 	Op   byte  // op except 0 = hash slot free, 255 = hash slot available due to allocation bounce on content size
 	Time [7] byte
 	H    Span7
-	Pd   byte  // principal signer depth, 1 = self
+	Idpt byte  // principal signer depth, 1 = self
 	Salt [3] byte
-	Fld1 byte
-	Acc1 [3] byte
+	Iloc Kndx  // principal signer quick link
 	P    Span6
-	Fld2 byte 
-	Acc2 [3] byte
-	Fld3 byte
-	Acc3 [3] byte
+	Pchk Cksm  // checksum of Pchk of nodes held... if two lodges differ on this, synchronization is indicated
+	Rchk Cksm  // checksum of Rchk of nodes held... if two lodges differ on this, synchronization is indicated
 	R    Span6
 	S    Sign
 }
