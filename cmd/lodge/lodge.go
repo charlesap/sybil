@@ -179,6 +179,7 @@ var (
 
 func handleIndex(w http.ResponseWriter, r *http.Request) {
 	time := time.Now().String()
+	fmt.Printf(r.URL.String())
 	io.WriteString(w, htmlStart)
 	io.WriteString(w, time)
 	io.WriteString(w, htmlEnd)
