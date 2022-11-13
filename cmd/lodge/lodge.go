@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"time"
 
@@ -66,6 +67,36 @@ func parseFlags() {
 	flag.Parse()
 }
 
+
+
+func udpResponse(udpServer net.PacketConn, addr net.Addr, buf []byte) {
+	time := time.Now().Format(time.ANSIC)
+	responseStr := fmt.Sprintf("time received: %v. Your message: %v!", time, string(buf))
+
+	udpServer.WriteTo([]byte(responseStr), addr)
+}
+
+func handleUDP(){
+
+	// listen to incoming udp packets
+	udpServer, err := net.ListenPacket("udp", ":1053")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer udpServer.Close()
+
+	for {
+		buf := make([]byte, 1024)
+		_, addr, err := udpServer.ReadFrom(buf)
+		if err != nil {
+			continue
+		}
+		go udpResponse(udpServer, addr, buf)
+	}
+
+}
+
+
 func main() {
 
 	parseFlags()
@@ -112,6 +143,9 @@ func main() {
 	if m != nil {
 		httpSrv.Handler = m.HTTPHandler(httpSrv.Handler)
 	}
+
+
+        go handleUDP()
 
 	httpSrv.Addr = httpPort
 	fmt.Printf("Starting HTTP server on %s\n", httpPort)
