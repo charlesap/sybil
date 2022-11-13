@@ -126,7 +126,7 @@ const getData = async (page_no = 1) => {
   );
 
   const barcontainer = document.querySelector('.bar_wrapper');
-  container.innerHTML += "Loading...";
+  barcontainer.innerHTML += "Loading...";
 
   const {results} = data;
   populateUI(results);
