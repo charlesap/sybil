@@ -194,6 +194,11 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, htmlEnd)
 }
 
+func handleApi(w http.ResponseWriter, r *http.Request) {
+	time := time.Now().String()
+	io.WriteString(w, time)
+}
+
 func handleWebAppIndexJS(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, htmlJS)
 }
@@ -216,6 +221,7 @@ func makeServerFromMux(mux *http.ServeMux) *http.Server {
 func makeHTTPServer() *http.Server {
 	mux := &http.ServeMux{}
 	mux.HandleFunc("/", handleIndex)
+	mux.HandleFunc("/web/api", handleApi)
 	mux.HandleFunc("/web/static/styles.css", handleWebStaticStylesCSS)
 	mux.HandleFunc("/web/app/index.js", handleWebAppIndexJS)
 	return makeServerFromMux(mux)
