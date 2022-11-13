@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	htmlIndex = `<html><body>Welcome!</body></html>`
+	htmlStart = `<html><body>`
+	htmlEnd = `</body></html>`
 	httpPort  = ":80"
 )
 
@@ -30,8 +31,9 @@ var (
 
 func handleIndex(w http.ResponseWriter, r *http.Request) {
 	time := time.Now().String()
+	io.WriteString(w, htmlStart)
 	io.WriteString(w, time)
-	io.WriteString(w, htmlIndex)
+	io.WriteString(w, htmlEnd)
 }
 
 func makeServerFromMux(mux *http.ServeMux) *http.Server {
