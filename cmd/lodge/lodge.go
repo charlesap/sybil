@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"path"
 	"path/filepath"
 	"context"
 	"crypto/tls"
@@ -214,8 +215,18 @@ func handleWebAppIndexJS(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, htmlJS)
 }
 
+func HandleWebApp(w http.ResponseWriter, r *http.Request) {
+	Filename := path.Base(r.URL.String())
+	http.ServeFile(w, r, filepath.Join(".", "web/app", Filename))
+}
+
 func handleWebStaticStylesCSS(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, htmlCSS)
+}
+
+func HandleWebStatic(w http.ResponseWriter, r *http.Request) {
+	Filename := path.Base(r.URL.String())
+	http.ServeFile(w, r, filepath.Join(".", "web/static", Filename))
 }
 
 func makeServerFromMux(mux *http.ServeMux) *http.Server {
@@ -233,8 +244,8 @@ func makeHTTPServer() *http.Server {
 	mux := &http.ServeMux{}
 	mux.HandleFunc("/", handleIndex)
 	mux.HandleFunc("/api/", handleApi)
-	mux.HandleFunc("/web/static/styles.css", handleWebStaticStylesCSS)
-	mux.HandleFunc("/web/app/index.js", handleWebAppIndexJS)
+	mux.HandleFunc("/web/static/", handleWebStaticStylesCSS)
+	mux.HandleFunc("/web/app/", handleWebAppIndexJS)
 	return makeServerFromMux(mux)
 
 }
