@@ -20,7 +20,6 @@ import (
 
 const (
 	htmlStart = `<html><body>`
-	htmlEnd = `</body></html>`
 	htmlInfiniteStart = `<!DOCTYPE html>
 <html>
 
@@ -45,146 +44,7 @@ const (
 
 	</script>
 `
-	htmlCSS = `.bar_wrapper {
-  background: rgba(0, 0, 0, .1);
-  width: 100%;
-  min-height: 20px;
-  padding:5%;
-}
-.whole_wrapper {
-  background: rgba(0, 0, 0, .1);
-  width: 100%;
-  min-height: 100%;
-  padding:5%;
-}
-.whole_wrapper .each_card {
-  width: 50%;
-  align-items: center;
-  text-align: center;
-  display: flex;
-  padding: 10px;
-  background: white;
-  margin:5% 25%;
-  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
-}
-.whole_wrapper .each_card .image_container {
-  text-align: left;
-}
-.whole_wrapper .each_card .image_container img {
-  width: 50%;
-  border-radius: 10px;
-}
-.whole_wrapper .each_card .right_contents_container {
-  display: flex;
-  flex-direction: column;
-}
-.whole_wrapper .each_card .right_contents_container .name_field {
-  font-size: 22px;
-  font-weight: 900;
-  line-height: 30px;
-}
-.whole_wrapper .each_card .right_contents_container .email_field {
-  font-size: 22px;
-  line-height: 30px;
-}
-`
-	htmlJS = `let page = 1;
-const last_page = 10;
-const pixel_offset = 200;
-const throttle = (callBack, delay) => {
-  let withinInterval;
-  return function() {
-    const args = arguments;
-    const context = this;
-    if (!withinInterval) {
-      callBack.call(context, args);
-      withinInterval = true;
-      setTimeout(() => (withinInterval = false), delay);
-    }
-  };
-};
-
-const httpRequestWrapper = (method, URL) => {
-  return new Promise((resolve, reject) => {
-    const xhr_obj = new XMLHttpRequest();
-    xhr_obj.responseType = "json";
-    xhr_obj.open(method, URL);
-    xhr_obj.onload = () => {
-      const data = xhr_obj.response;
-      resolve(data);
-    };
-    xhr_obj.onerror = () => {
-      reject("failed");
-    };
-    xhr_obj.send();
-  });
-};
-
-const getData = async (page_no = 1) => {
-  const barcontainer = document.querySelector('.bar_wrapper');
-
-  barcontainer.innerHTML += "Loading...";
-
-  const data = await httpRequestWrapper(
-    "GET",
-    "https://sybil.kuracali.com/api/?page=${page_no}&results=10"
-  );
-
-  barcontainer.innerHTML += data;
-
-  const {results} = data;
-  populateUI(results);
-};
-
-let handleLoad;
-
-let trottleHandler = () =>{throttle(handleLoad.call(this), 1000)};
-
-document.addEventListener("DOMContentLoaded", () => {
-  getData(1);
-  window.addEventListener("scroll", trottleHandler);
-});
-
-handleLoad =  () => {
-  if((window.innerHeight + window.scrollY) >= document.body.offsetHeight - pixel_offset){
-    page = page+1;
-    if(page<=last_page){
-      window.removeEventListener('scroll',trottleHandler)
-      getData(page)
-      .then((res)=>{
-        window.addEventListener('scroll',trottleHandler)
-      })
-    }
-  }
-}
-
-
-
-const populateUI = data => {
-  const barcontainer = document.querySelector('.bar_wrapper');
-  barcontainer.innerHTML += "Displaying...";
-  const container = document.querySelector('.whole_wrapper');
-  data && 
-  data.length && 
-  data
-  .map((each,index)=>{
-    const {name,time,email,picture} = each;
-    const {first} = name;
-    const {large} = picture;
-    container.innerHTML += '    <div class="each_card">' +
-                           '       <div class="image_container">' +
-                           '         <img src="${large}" alt="" />' +
-                           '       </div>' +
-                           '       <div class="right_contents_container">' +
-                           '         <div class="time_field">${time}</div>' +
-                           '         <div class="name_field">${first}</div>' +
-                           '         <div class="email_filed">${email}</div>' +
-                           '       </div>' +
-                           '    </div>'
-  })
-
-}
-`
+	htmlEnd = `</body></html>`
 	httpPort  = ":80"
 )
 
@@ -211,20 +71,12 @@ func handleApi(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `", "email" : "none", "picture" : "none" }]`)
 }
 
-func handleWebAppIndexJS(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, htmlJS)
-}
-
-func HandleWebApp(w http.ResponseWriter, r *http.Request) {
+func handleWebApp(w http.ResponseWriter, r *http.Request) {
 	Filename := path.Base(r.URL.String())
 	http.ServeFile(w, r, filepath.Join(".", "web/app", Filename))
 }
 
-func handleWebStaticStylesCSS(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, htmlCSS)
-}
-
-func HandleWebStatic(w http.ResponseWriter, r *http.Request) {
+func handleWebStatic(w http.ResponseWriter, r *http.Request) {
 	Filename := path.Base(r.URL.String())
 	http.ServeFile(w, r, filepath.Join(".", "web/static", Filename))
 }
@@ -244,8 +96,8 @@ func makeHTTPServer() *http.Server {
 	mux := &http.ServeMux{}
 	mux.HandleFunc("/", handleIndex)
 	mux.HandleFunc("/api/", handleApi)
-	mux.HandleFunc("/web/static/", handleWebStaticStylesCSS)
-	mux.HandleFunc("/web/app/", handleWebAppIndexJS)
+	mux.HandleFunc("/web/static/", handleWebStatic)
+	mux.HandleFunc("/web/app/", handleWebApp)
 	return makeServerFromMux(mux)
 
 }
