@@ -1,0 +1,8 @@
+[Unit]
+Description=Sybil
+
+[Service]
+ExecStart=/usr/sbin/sybil -p -v -r
+
+[Install]
+WantedBy=multi-user.target
