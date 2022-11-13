@@ -161,7 +161,7 @@ const populateUI = data => {
   data.length && 
   data
   .map((each,index)=>{
-    const {name,email,picture} = each;
+    const {name,time,email,picture} = each;
     const {first} = name;
     const {large} = picture;
     container.innerHTML += '    <div class="each_card">' +
@@ -169,6 +169,7 @@ const populateUI = data => {
                            '         <img src="${large}" alt="" />' +
                            '       </div>' +
                            '       <div class="right_contents_container">' +
+                           '         <div class="time_field">${time}</div>' +
                            '         <div class="name_field">${first}</div>' +
                            '         <div class="email_filed">${email}</div>' +
                            '       </div>' +
@@ -196,7 +197,9 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 
 func handleApi(w http.ResponseWriter, r *http.Request) {
 	time := time.Now().String()
+	io.WriteString(w, '[{ "name" : "bob", "time" : }]'
 	io.WriteString(w, time)
+	io.WriteString(w, '", "email" : "none", "picture" : "none" }]'
 }
 
 func handleWebAppIndexJS(w http.ResponseWriter, r *http.Request) {
