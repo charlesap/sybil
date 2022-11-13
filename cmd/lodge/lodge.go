@@ -29,6 +29,8 @@ var (
 )
 
 func handleIndex(w http.ResponseWriter, r *http.Request) {
+	time := time.Now().String()
+	io.WriteString(w, time)
 	io.WriteString(w, htmlIndex)
 }
 
