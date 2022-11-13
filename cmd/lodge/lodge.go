@@ -125,6 +125,9 @@ const getData = async (page_no = 1) => {
     "https://sybil.kuracali.com/api/?page=${page_no}&results=10"
   );
 
+  const barcontainer = document.querySelector('.bar_wrapper');
+  container.innerHTML += "Loading...";
+
   const {results} = data;
   populateUI(results);
 };
@@ -155,7 +158,7 @@ handleLoad =  () => {
 
 const populateUI = data => {
   const barcontainer = document.querySelector('.bar_wrapper');
-  container.innerHTML += "Loading...";
+  container.innerHTML += "Displaying...";
   const container = document.querySelector('.whole_wrapper');
   data && 
   data.length && 
