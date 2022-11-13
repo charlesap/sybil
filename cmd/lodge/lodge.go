@@ -70,7 +70,7 @@ func parseFlags() {
 
 
 func udpResponse(udpServer net.PacketConn, addr net.Addr, buf []byte) {
-	time := time.Now().Format(time.ANSIC)
+	time := time.Now().String()
 	responseStr := fmt.Sprintf("time received: %v. Your message: %v!", time, string(buf))
 
 	udpServer.WriteTo([]byte(responseStr), addr)
