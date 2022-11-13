@@ -120,13 +120,16 @@ const httpRequestWrapper = (method, URL) => {
 };
 
 const getData = async (page_no = 1) => {
+  const barcontainer = document.querySelector('.bar_wrapper');
+
+  barcontainer.innerHTML += "Loading...";
+
   const data = await httpRequestWrapper(
     "GET",
     "https://sybil.kuracali.com/api/?page=${page_no}&results=10"
   );
 
-  const barcontainer = document.querySelector('.bar_wrapper');
-  barcontainer.innerHTML += "Loading...";
+  barcontainer.innerHTML += data;
 
   const {results} = data;
   populateUI(results);
