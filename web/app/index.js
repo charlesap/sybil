@@ -37,7 +37,7 @@ const getData = async (page_no = 1) => {
 
   const data = await httpRequestWrapper(
     "GET",
-    "https://sybil.kuracali.com/api/?page=${page_no}&results=10"
+    `https://sybil.kuracali.com/api/?page=${page_no}&results=10`
   );
 
   barcontainer.innerHTML += data;
@@ -81,16 +81,20 @@ const populateUI = data => {
     const {name,time,email,picture} = each;
     const {first} = name;
     const {large} = picture;
-    container.innerHTML += '    <div class="each_card">' +
-                           '       <div class="image_container">' +
-                           '         <img src="${large}" alt="" />' +
-                           '       </div>' +
-                           '       <div class="right_contents_container">' +
-                           '         <div class="time_field">${time}</div>' +
-                           '         <div class="name_field">${first}</div>' +
-                           '         <div class="email_filed">${email}</div>' +
-                           '       </div>' +
-                           '    </div>'
+    container.innerHTML +=     `
+    <div class="each_card">
+      <div class="image_container">
+        <img src="${large}" alt="" />
+      </div>
+      <div class="right_contents_container">
+        <div class="name_field">${name}</div>
+        <div class="time_field">${time}</div>
+        <div class="email_filed">${email}</div>
+      </div>
+    </div>
+    
+    `
+
   })
 
 }

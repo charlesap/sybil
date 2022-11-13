@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"context"
 	"crypto/tls"
+	"strconv"
 	"flag"
 	"fmt"
 	"io"
@@ -63,16 +64,28 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleApi(w http.ResponseWriter, r *http.Request) {
+	pg := r.URL.Query().Get("page")
+	p, err1 := strconv.Atoi(pg)
+	if err1 != nil { p = 1 }
+	rs := r.URL.Query().Get("results")
+	n, err2 := strconv.Atoi(rs)
+	if err2 != nil { n = 1 }
 	time := time.Now().String()
 //	fmt.Printf("API REQUEST")
-//	fmt.Printf(r.URL.String())
-	io.WriteString(w, `{"results":[{ "name" : "bob", "time" : "`)
-	io.WriteString(w, time)
-	io.WriteString(w, `", "email" : "bob@bob.com", "picture" : ":-)" },`)
-	io.WriteString(w, ` { "name" : "ray", "time" : "`)
-	io.WriteString(w, time)
-	io.WriteString(w, `", "email" : "ray@ray.com", "picture" : ";-(" }],`)
-	io.WriteString(w, `"info":{"seed":"X","results":2,"page":1,"version":"0.1"}}`)
+	fmt.Printf("%s %s %d %s %d \n",r.URL.String(),pg,p,rs,n)
+	io.WriteString(w, `{"results":[`)
+	for i:=0;i<n;i++ {
+		s:=fmt.Sprintf("%s %d %s %s %s",`{ "name" : "bob`,((p-1)*n)+i,`", "time" : "`,time, `", "email" : "bob@bob.com", "picture" : ":-)" }`)
+		io.WriteString(w, s)
+		if i < (n-1) {
+			io.WriteString(w, `,`)
+		}
+	}
+	io.WriteString(w, `],"info":{"seed":"X","results":`)
+	io.WriteString(w, rs)
+	io.WriteString(w, `,"page":`)
+	io.WriteString(w, pg)
+	io.WriteString(w, `,"version":"0.1"}}`)
 }
 
 func handleWebApp(w http.ResponseWriter, r *http.Request) {
