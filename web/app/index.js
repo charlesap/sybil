@@ -72,7 +72,7 @@ handleLoad =  () => {
 
 const populateUI = data => {
   const barcontainer = document.querySelector('.bar_wrapper');
-  barcontainer.innerHTML += "Displaying...";
+  barcontainer.innerHTML = "Displaying...";
   const container = document.querySelector('.whole_wrapper');
   data && 
   data.length && 
