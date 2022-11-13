@@ -18,7 +18,7 @@ import (
 
 const (
 	htmlIndex = `<html><body>Welcome!</body></html>`
-	httpPort  = "104.237.156.125:80"
+	httpPort  = ":80"
 )
 
 var (
