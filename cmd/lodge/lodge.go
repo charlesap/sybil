@@ -66,12 +66,13 @@ func handleApi(w http.ResponseWriter, r *http.Request) {
 	time := time.Now().String()
 //	fmt.Printf("API REQUEST")
 //	fmt.Printf(r.URL.String())
-	io.WriteString(w, `[{ "name" : "bob", "time" : "`)
+	io.WriteString(w, `{"results":[{ "name" : "bob", "time" : "`)
 	io.WriteString(w, time)
 	io.WriteString(w, `", "email" : "none", "picture" : "none" },`)
 	io.WriteString(w, ` { "name" : "bob", "time" : "`)
 	io.WriteString(w, time)
-	io.WriteString(w, `", "email" : "none", "picture" : "none" }]`)
+	io.WriteString(w, `", "email" : "none", "picture" : "none" }],`)
+	io.WriteString(w, `"info":{"seed":"X","results":1,"page":1,"version":"0.1"}}`)
 }
 
 func handleWebApp(w http.ResponseWriter, r *http.Request) {
