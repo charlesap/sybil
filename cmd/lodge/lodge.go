@@ -26,7 +26,7 @@ const (
 <head>
 	<title>Your Lodge</title>
 	<meta charset="UTF-8" />
-	<link rel="stylesheet" href="https://sybil.kuracali.com/web/static/styles.css"/>
+	<link rel="stylesheet" href="sybil.kuracali.com/web/static/styles.css"/>
 	<script src="sybil.kuracali.com/web/app/index.js" defer></script>
 </head>
 
