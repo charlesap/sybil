@@ -226,7 +226,7 @@ func makeServerFromMux(mux *http.ServeMux) *http.Server {
 func makeHTTPServer() *http.Server {
 	mux := &http.ServeMux{}
 	mux.HandleFunc("/", handleIndex)
-	mux.HandleFunc("/api", handleApi)
+	mux.HandleFunc("/api/", handleApi)
 	mux.HandleFunc("/web/static/styles.css", handleWebStaticStylesCSS)
 	mux.HandleFunc("/web/app/index.js", handleWebAppIndexJS)
 	return makeServerFromMux(mux)
