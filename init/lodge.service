@@ -1,8 +1,8 @@
 [Unit]
-Description=Sybil
+Description=lodge
 
 [Service]
-ExecStart=/usr/sbin/sybil -p -v -r
+ExecStart=/usr/sbin/lodge -p -v -r
 
 [Install]
 WantedBy=multi-user.target
