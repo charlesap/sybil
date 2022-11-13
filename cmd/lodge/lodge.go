@@ -197,9 +197,9 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 
 func handleApi(w http.ResponseWriter, r *http.Request) {
 	time := time.Now().String()
-	io.WriteString(w, '[{ "name" : "bob", "time" : }]'
+	io.WriteString(w, '[{ "name" : "bob", "time" : }]')
 	io.WriteString(w, time)
-	io.WriteString(w, '", "email" : "none", "picture" : "none" }]'
+	io.WriteString(w, '", "email" : "none", "picture" : "none" }]')
 }
 
 func handleWebAppIndexJS(w http.ResponseWriter, r *http.Request) {
