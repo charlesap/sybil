@@ -26,8 +26,8 @@ const (
 <head>
 	<title>Your Lodge</title>
 	<meta charset="UTF-8" />
-	<link rel="stylesheet" href="src/styles.css"/>
-	<script src="src/index.js" defer></script>
+	<link rel="stylesheet" href="web/static/styles.css"/>
+	<script src="web/app/index.js" defer></script>
 </head>
 
 <body>
@@ -39,7 +39,7 @@ const (
 
 	</script>
 `
-	httpCSS = `.whole_wrapper {
+	htmlCSS = `.whole_wrapper {
   background: rgba(0, 0, 0, .1);
   width: 100%;
   min-height: 100%;
@@ -76,7 +76,7 @@ const (
   line-height: 30px;
 }
 `
-	httpJS = `let page = 1;
+	htmlJS = `let page = 1;
 const last_page = 10;
 const pixel_offset = 200;
 const throttle = (callBack, delay) => {
@@ -111,7 +111,7 @@ const httpRequestWrapper = (method, URL) => {
 const getData = async (page_no = 1) => {
   const data = await httpRequestWrapper(
     "GET",
-    "https://randomuser.me/api/?page=${page_no}&results=10"
+    "https://sybil.kuracali.com/api/?page=${page_no}&results=10"
   );
 
   const {results} = data;
@@ -185,6 +185,14 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, htmlEnd)
 }
 
+func handleWebAppIndexJS(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, htmlJS)
+}
+
+func handleWebStaticStylesCSS(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, htmlCSS)
+}
+
 func makeServerFromMux(mux *http.ServeMux) *http.Server {
 	// set timeouts so that a slow or malicious client doesn't
 	// hold resources forever
@@ -199,6 +207,8 @@ func makeServerFromMux(mux *http.ServeMux) *http.Server {
 func makeHTTPServer() *http.Server {
 	mux := &http.ServeMux{}
 	mux.HandleFunc("/", handleIndex)
+	mux.HandleFunc("/web/static/styles.css", handleWebStaticStylesCSS)
+	mux.HandleFunc("/web/app/index.js", handleWebAppIndexJS)
 	return makeServerFromMux(mux)
 
 }
