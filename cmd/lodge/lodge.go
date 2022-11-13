@@ -31,6 +31,11 @@ const (
 </head>
 
 <body>
+	<div id="bar">
+		<div class="bar_wrapper">
+
+		</div>
+	</div>
 	<div id="app">
 		<div class="whole_wrapper">
 
@@ -39,7 +44,13 @@ const (
 
 	</script>
 `
-	htmlCSS = `.whole_wrapper {
+	htmlCSS = `.bar_wrapper {
+  background: rgba(0, 0, 0, .1);
+  width: 100%;
+  min-height: 20px;
+  padding:5%;
+}
+.whole_wrapper {
   background: rgba(0, 0, 0, .1);
   width: 100%;
   min-height: 100%;
@@ -143,6 +154,8 @@ handleLoad =  () => {
 
 
 const populateUI = data => {
+  const barcontainer = document.querySelector('.bar_wrapper');
+  container.innerHTML += "Loading...";
   const container = document.querySelector('.whole_wrapper');
   data && 
   data.length && 
