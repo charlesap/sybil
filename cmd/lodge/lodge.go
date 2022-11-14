@@ -113,6 +113,10 @@ func handleWebStatic(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, filepath.Join(".", "web/static", Filename))
 }
 
+func handleFavicon(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "web/static/favicon.ico")
+}
+
 func makeServerFromMux(mux *http.ServeMux) *http.Server {
 	// set timeouts so that a slow or malicious client doesn't
 	// hold resources forever
@@ -131,6 +135,7 @@ func makeHTTPServer() *http.Server {
 	mux.HandleFunc("/img/", handleImg)
 	mux.HandleFunc("/web/static/", handleWebStatic)
 	mux.HandleFunc("/web/app/", handleWebApp)
+	mux.HandleFunc("/favicon.ico", handleFavicon)
 	return makeServerFromMux(mux)
 
 }
