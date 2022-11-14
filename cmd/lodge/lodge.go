@@ -34,7 +34,9 @@ const (
 <body>
 	<div id="bar">
 		<div class="bar_wrapper">
+			<div class="bar_card">
 
+			</div>
 		</div>
 	</div>
 	<div id="app">
@@ -75,7 +77,7 @@ func handleApi(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("%s %s %d %s %d \n",r.URL.String(),pg,p,rs,n)
 	io.WriteString(w, `{"results":[`)
 	for i:=0;i<n;i++ {
-		s:=fmt.Sprintf("%s %d %s %s %s",`{ "name" : "bob`,((p-1)*n)+i,`", "time" : "`,time, `", "email" : "bob@bob.com", "picture" : ":-)" }`)
+		s:=fmt.Sprintf("%s %d %s %s %s%d%s",`{ "name" : "bob`,((p-1)*n)+i,`", "time" : "`,time, `", "email" : "bob@bob.com", "picture" : "img/`,((p-1)*n)+i,`.jpg" }`)
 		io.WriteString(w, s)
 		if i < (n-1) {
 			io.WriteString(w, `,`)
@@ -86,6 +88,11 @@ func handleApi(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `,"page":`)
 	io.WriteString(w, pg)
 	io.WriteString(w, `,"version":"0.1"}}`)
+}
+
+func handleImg(w http.ResponseWriter, r *http.Request) {
+	Filename := path.Base(r.URL.String())
+	http.ServeFile(w, r, filepath.Join(".", "examples", Filename))
 }
 
 func handleWebApp(w http.ResponseWriter, r *http.Request) {
@@ -113,6 +120,7 @@ func makeHTTPServer() *http.Server {
 	mux := &http.ServeMux{}
 	mux.HandleFunc("/", handleIndex)
 	mux.HandleFunc("/api/", handleApi)
+	mux.HandleFunc("/img/", handleImg)
 	mux.HandleFunc("/web/static/", handleWebStatic)
 	mux.HandleFunc("/web/app/", handleWebApp)
 	return makeServerFromMux(mux)

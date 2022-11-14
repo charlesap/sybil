@@ -31,16 +31,16 @@ const httpRequestWrapper = (method, URL) => {
 };
 
 const getData = async (page_no = 1) => {
-  const barcontainer = document.querySelector('.bar_wrapper');
+  const barcard = document.querySelector('.bar_card');
 
-  barcontainer.innerHTML += "Loading...";
+  barcard.innerHTML += "Loading...";
 
   const data = await httpRequestWrapper(
     "GET",
     `https://sybil.kuracali.com/api/?page=${page_no}&results=10`
   );
 
-  barcontainer.innerHTML += data;
+  barcard.innerHTML += data;
 
   const {results} = data;
   populateUI(results);
@@ -71,8 +71,13 @@ handleLoad =  () => {
 
 
 const populateUI = data => {
-  const barcontainer = document.querySelector('.bar_wrapper');
-  barcontainer.innerHTML = "Displaying...";
+  const barcard = document.querySelector('.bar_card');
+  barcard.innerHTML = `
+      <div class="image_container">
+        <img src="img/0.jpg" alt="" />
+      </div>
+      `
+
   const container = document.querySelector('.whole_wrapper');
   data && 
   data.length && 
@@ -84,7 +89,7 @@ const populateUI = data => {
     container.innerHTML +=     `
     <div class="each_card">
       <div class="image_container">
-        <img src="${large}" alt="" />
+        <img src="${picture}" alt="" />
       </div>
       <div class="right_contents_container">
         <div class="name_field">${name}</div>

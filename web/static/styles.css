@@ -1,42 +1,61 @@
 .bar_wrapper {
   background: rgba(0, 0, 0, .1);
   width: 100%;
-  min-height: 20px;
-  padding:5%;
+  min-height: 100%;
+  padding:2%;
+}
+.bar_wrapper .bar_card {
+  width: 75%;
+  align-items: left;
+  text-align: left;
+  display: flex;
+  padding: 5px;
+  background: white;
+#  margin:2% 5%;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+}
+.bar_wrapper .bar_card .image_container img {
+  width: 75%;
+  border-radius: 10px;
 }
 .whole_wrapper {
   background: rgba(0, 0, 0, .1);
   width: 100%;
   min-height: 100%;
-  padding:5%;
+  padding:2%;
 }
 .whole_wrapper .each_card {
-  width: 50%;
+  width: 75%;
   align-items: center;
   text-align: center;
   display: flex;
-  padding: 10px;
+  padding: 5px;
   background: white;
-  margin:5% 25%;
+  margin:2% 5%;
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
 }
 .whole_wrapper .each_card .image_container {
   text-align: left;
 }
 .whole_wrapper .each_card .image_container img {
-  width: 50%;
+  width: 40%;
   border-radius: 10px;
 }
 .whole_wrapper .each_card .right_contents_container {
-  display: flex;
-  flex-direction: column;
+#  display: flex;
+#  flex-direction: column;
+}
+.whole_wrapper .each_card .right_contents_container .time_field {
+#  font-size: 22px;
+#  font-weight: 900;
+#  line-height: 20px;
 }
 .whole_wrapper .each_card .right_contents_container .name_field {
-  font-size: 22px;
-  font-weight: 900;
-  line-height: 30px;
+#  font-size: 22px;
+#  font-weight: 900;
+#  line-height: 20px;
 }
 .whole_wrapper .each_card .right_contents_container .email_field {
-  font-size: 22px;
-  line-height: 30px;
+#  font-size: 22px;
+#  line-height: 20px;
 }
