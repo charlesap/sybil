@@ -20,6 +20,14 @@ import (
 	"image/png"
 	"io/ioutil"
 
+//	"html/template"
+
+	"github.com/BurntSushi/toml"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+//	"golang.org/x/text/language"
+
+
+	"golang.org/x/text/language"
 	"golang.org/x/crypto/acme/autocert"
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
@@ -63,6 +71,7 @@ var (
 	flgVerbose             = false
 	flgProduction          = false
 	flgRedirectHTTPToHTTPS = false
+	bundle                 *i18n.Bundle
 )
 
 func handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -74,18 +83,43 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleApi(w http.ResponseWriter, r *http.Request) {
+
+	name:="bob"
+
+//	lang := r.FormValue("lang")
+	lang := "es"
+	accept := r.Header.Get("Accept-Language")
+	localizer := i18n.NewLocalizer(bundle, lang, accept)
+
+	helloPerson := localizer.MustLocalize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID:    "HelloPerson",
+			Other: "Hello {{.Name}}",
+		},
+		TemplateData: map[string]string{
+			"Name": name,
+		},
+	})
+
+
+//	al:=r.Header.Get("Accept-Language")
+//	m := language.NewMatcher([]language.Tag{language.English, language.French})
+//	desired, _, _ := language.ParseAcceptLanguage(al)
+//	tag, i, conf := m.Match(desired...)
+//	fmt.Println("case B", tag, i, conf) // fr-u-rg-dezzzz instead of en-u-rg-gbzzzz
+
 	pg := r.URL.Query().Get("page")
 	p, err1 := strconv.Atoi(pg)
 	if err1 != nil { p = 1 }
 	rs := r.URL.Query().Get("results")
 	n, err2 := strconv.Atoi(rs)
 	if err2 != nil { n = 1 }
-	time := time.Now().String()
+//	time := time.Now().String()
 //	fmt.Printf("API REQUEST")
 	fmt.Printf("%s %s %d %s %d \n",r.URL.String(),pg,p,rs,n)
 	io.WriteString(w, `{"results":[`)
 	for i:=0;i<n;i++ {
-		s:=fmt.Sprintf("%s %d %s %s %s%d%s",`{ "name" : "bob`,((p-1)*n)+i,`", "time" : "`,time, `", "email" : "bob@bob.com", "picture" : "img/`,((p-1)*n)+i,`.jpg" }`)
+		s:=fmt.Sprintf("%s %d %s %s %s%d%s",`{ "name" : "bob`,((p-1)*n)+i,`", "time" : "`,helloPerson, `", "email" : "bob@bob.com", "picture" : "img/`,((p-1)*n)+i,`.jpg" }`)
 		io.WriteString(w, s)
 		if i < (n-1) {
 			io.WriteString(w, `,`)
@@ -222,6 +256,12 @@ func handleUDP(){
 
 
 func main() {
+
+	bundle = i18n.NewBundle(language.English)
+	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+	// No need to load active.en.toml since we are providing default translations.
+	bundle.MustLoadMessageFile("web/static/active.en.toml")
+	bundle.MustLoadMessageFile("web/static/active.es.toml")
 
 	parseFlags()
 	var m *autocert.Manager
