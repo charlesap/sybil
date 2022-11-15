@@ -10,7 +10,8 @@ import (
 
 func Attach() {
 
-	storage, err := directio.OpenFile("blockstore", os.O_RDONLY, 0666)
+	storeA, err := directio.OpenFile("blockstore1", os.O_RDONLY, 0666)
+	storeB, err := directio.OpenFile("blockstore2", os.O_RDONLY, 0666)
 
 	if err!= nil {
 
@@ -18,7 +19,8 @@ func Attach() {
 
 		lodge.Emit(baseName)
 
-		storage.Close()
+		storeA.Close()
+		storeB.Close()
 
 	}
 	
