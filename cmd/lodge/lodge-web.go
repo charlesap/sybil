@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"path"
 	"path/filepath"
 	"context"
@@ -22,7 +21,6 @@ import (
 	"golang.org/x/text/language"
 	"golang.org/x/crypto/acme/autocert"
 
-	"github.com/charlesap/sybil/pkg/lodge"
 )
 
 const (
@@ -246,8 +244,5 @@ func Webmain() {
 
 
 
-	baseName := filepath.Base(os.Args[0])
-
-	lodge.Emit(baseName)
 }
 
