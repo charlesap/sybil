@@ -1,7 +1,8 @@
 package lodge
 
 import (
-	"fmt"
+    b64 "encoding/base64"
+    "fmt"
 )
 
 type Lodge struct{
@@ -10,32 +11,73 @@ type Lodge struct{
 	Bdev [256] byte
 }
 
+type Kdate [3]byte
+
+func (k Kdate) String() string {
+	return fmt.Sprintf("YYMMDD")
+}
+
+type Ktime [3]byte
+
+func (k Ktime) String() string {
+	return fmt.Sprintf("hhmmss")
+}
+
 type Hash [28] byte
 
+func (h Hash) String() string {
+	return fmt.Sprintf(b64.StdEncoding.EncodeToString(h[:]))
+}
+
 type Sign [64] byte
+
+func (s Sign) String() string {
+	return fmt.Sprintf(b64.StdEncoding.EncodeToString(s[:]))
+}
 
 type Kndx  uint32 // index of a Knod in block device of Knods
 
 type Cksm  uint32 // checksum of checksums of nodes held by this node or
                   // checksum of checksums of nodes referring to this node
 
+type Twig7 [7] Kndx
+
+func (t Twig7) String() string {
+	return fmt.Sprintf("%0.8x",t[:])
+}
+
+type Twig6 [6] Kndx
+
+func (t Twig6) String() string {
+	return fmt.Sprintf("%0.8x",t[:])
+}
+
 type Span7 struct{ // 56 bytes 
 	Hsh Hash
-	Lnk [7] Kndx
+	Lnk Twig7
+}
+
+func (s Span7) String() string {
+	return fmt.Sprintf("%v",s.Hsh)
 }
 
 type Span6 struct{ // 56 bytes 
 	Hsh Hash
 	Top Kndx
-	Lnk [6] Kndx
+	Lnk Twig6
+}
+
+func (s Span6) String() string {
+	return fmt.Sprintf("%v",s.Hsh)
 }
 
 type Knod struct{ // 256 bytes // knowledge node, Tnod is a text representation
 	Op   byte  // op except 0 = hash slot free, 255 = hash slot available due to allocation bounce on content size
-	Time [7] byte
+	Date Kdate
+	Tag  Kndx  // index to a well-known universal label for un-tracked tagging, expanded to hash on transmission or zero, also may be used as salt
 	H    Span7
 	Idpt byte  // principal signer depth, 1 = self
-	Salt [3] byte
+	Time Ktime
 	Iloc Kndx  // principal signer quick link
 	P    Span6
 	Pchk Cksm  // checksum of Pchk of nodes held... if two lodges differ on this, synchronization is indicated
@@ -43,6 +85,35 @@ type Knod struct{ // 256 bytes // knowledge node, Tnod is a text representation
 	R    Span6
 	S    Sign
 }
+
+func op2string(o byte) string {
+	kop := "UNKWN"
+	switch o {
+	case 0:
+		kop = "KFREE"
+	case 1:
+		kop = "LABEL"
+	case 2:
+		kop = "INTRO"
+	case 3:
+		kop = "TEMPO"
+	case 4:
+		kop = "DFOLD"
+	case 5:
+		kop = "NMACC"
+	case 6:
+		kop = "ITEXT"
+	case 7:
+		kop = "REFR"
+	}
+	return kop
+}
+
+func (k Knod) String() string {
+	return fmt.Sprintf("%s %v %v %0.2x %0.8x %0.8x %v %v %v %v", op2string(k.Op), k.Date, k.Time, k.Idpt, k.Iloc, k.Tag, k.H, k.P, k.R, k.S) // swap k.Tag for hash
+}
+
+
 
 type Body struct{ // 252 possble bytes of text
 	Pad1 byte  // all zeros = empty all ones = text otherwise Mesg
@@ -59,7 +130,22 @@ type Body struct{ // 252 possble bytes of text
 
 func Emit(name string) {
 
-	fmt.Println( name )
+	t := Knod { 
+	0,
+	Kdate {0,0,0},
+	0,
+	Span7 {Hash {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, Twig7 {0,0,0,0,0,0,0}},
+	0,
+	Ktime {0,0,0},
+	0,
+	Span6 {Hash {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},0, Twig6 {0,0,0,0,0,0}},
+	0,
+	0,
+	Span6 {Hash {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},0, Twig6 {0,0,0,0,0,0}},
+	Sign {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}}
+
+
+	fmt.Println( t )
 }
 
 func Format() { // write zeros to empty all blocks

@@ -5,5 +5,7 @@ func main() {
 	Attach()
 
 	go HandleUDP()
+
 	Webmain()
+
 }
