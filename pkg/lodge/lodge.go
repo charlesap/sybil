@@ -133,16 +133,10 @@ func (k Knod) Archive() string {
 
 
 type Body struct{ // 252 possble bytes of text
-	Pad1 byte  // all zeros = empty all ones = text otherwise Mesg
-	Text1 [63] byte
-	Pad2 byte  // all zeros = empty all ones = text otherwise Mesg
-	Text2 [63] byte
-	Pad3 byte  // all zeros = empty all ones = text otherwise Mesg
-	Text3 [63] byte
-	Len  byte  // of this text segment not including null, 255 = continue next block
-	Text4 [63] byte
+	Pad1 byte  // 0 = lookup empty and terminal, 252 = url to content, 253 = text continued, 254 = text start, 255 = lookup empty but bounce
+	Pad2 [3] byte  // text length remaining including this
+	Text [252] byte
 	                // all utf8
-	                // if Len is 254 then text is null terminated special reference (image? movie?)
 }
 
 func Emit(name string) {
