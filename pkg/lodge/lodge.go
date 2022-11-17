@@ -1,8 +1,10 @@
 package lodge
 
 import (
-    b64 "encoding/base64"
+//    a85 "encoding/ascii85"
     "fmt"
+    "time"
+    "github.com/nofeaturesonlybugs/z85"
 )
 
 type Lodge struct{
@@ -25,14 +27,16 @@ func (k Ktime) String() string {
 
 type Hash [28] byte
 
-func (h Hash) String() string {
-	return fmt.Sprintf(b64.StdEncoding.EncodeToString(h[:]))
+func (h Hash) Archive() string {
+	t, _ := z85.Encode(h[:])
+	return t
 }
 
 type Sign [64] byte
 
-func (s Sign) String() string {
-	return fmt.Sprintf(b64.StdEncoding.EncodeToString(s[:]))
+func (s Sign) Archive() string {
+	t, _ := z85.Encode(s[:])
+return t
 }
 
 type Kndx  uint32 // index of a Knod in block device of Knods
@@ -57,8 +61,8 @@ type Span7 struct{ // 56 bytes
 	Lnk Twig7
 }
 
-func (s Span7) String() string {
-	return fmt.Sprintf("%v",s.Hsh)
+func (s Span7) Archive() string {
+	return s.Hsh.Archive()
 }
 
 type Span6 struct{ // 56 bytes 
@@ -67,8 +71,8 @@ type Span6 struct{ // 56 bytes
 	Lnk Twig6
 }
 
-func (s Span6) String() string {
-	return fmt.Sprintf("%v",s.Hsh)
+func (s Span6) Archive() string {
+	return s.Hsh.Archive()
 }
 
 type Knod struct{ // 256 bytes // knowledge node, Tnod is a text representation
@@ -86,7 +90,7 @@ type Knod struct{ // 256 bytes // knowledge node, Tnod is a text representation
 	S    Sign
 }
 
-func op2string(o byte) string {
+func Op2string(o byte) string {
 	kop := "UNKWN"
 	switch o {
 	case 0:
@@ -109,8 +113,19 @@ func op2string(o byte) string {
 	return kop
 }
 
-func (k Knod) String() string {
-	return fmt.Sprintf("%s %v %v %0.2x %0.8x %0.8x %v %v %v %v", op2string(k.Op), k.Date, k.Time, k.Idpt, k.Iloc, k.Tag, k.H, k.P, k.R, k.S) // swap k.Tag for hash
+func (k Knod) UnixTime() time.Time {
+	return time.Unix( int64(k.Time[0])+
+	                  int64(k.Time[1])*256+
+	                  int64(k.Time[2])*65536+
+	                  int64(k.Date[0])*16777216+
+	                  int64(k.Date[1])*4294967296+
+	                  int64(k.Date[2])*1099511627776,0)
+}
+
+func (k Knod) Archive() string {
+	h:= Hash {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+	t:=k.UnixTime()
+	return fmt.Sprintf("%v %v %s%s%s%s%s", Op2string(k.Op), time.Unix(t.UnixMilli(),0), h.Archive() , k.H.Archive(), k.P.Archive(), k.R.Archive(), k.S.Archive()) 
 }
 
 
@@ -145,7 +160,8 @@ func Emit(name string) {
 	Sign {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}}
 
 
-	fmt.Println( t )
+	fmt.Println( t.Archive() )
+	fmt.Println()
 }
 
 func Format() { // write zeros to empty all blocks
