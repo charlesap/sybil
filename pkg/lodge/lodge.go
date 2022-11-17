@@ -125,7 +125,9 @@ func (k Knod) UnixTime() time.Time {
 func (k Knod) Archive() string {
 	h:= Hash {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 	t:=k.UnixTime()
-	return fmt.Sprintf("%v %v %s%s%s%s%s", Op2string(k.Op), time.Unix(t.UnixMilli(),0), h.Archive() , k.H.Archive(), k.P.Archive(), k.R.Archive(), k.S.Archive()) 
+
+	//255 character string output so the 256th may be a newline 
+	return fmt.Sprintf("%v %v%s%s%s%s%s", Op2string(k.Op), time.Unix(t.UnixMilli(),0), h.Archive() , k.H.Archive(), k.P.Archive(), k.R.Archive(), k.S.Archive()) 
 }
 
 
