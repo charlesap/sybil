@@ -1,10 +1,16 @@
 package lodge
 
 import (
-//    a85 "encoding/ascii85"
     "fmt"
     "time"
+    "crypto/rand"
+    "crypto/ed25519"
     "github.com/nofeaturesonlybugs/z85"
+)
+
+const(
+	wpub85 = "=GghkI+R0ESP@Yp/a-!ug<u6!B6=RBg1n=.anj*("
+	wpriv85 = "NaVE{n8nqx=f+GIOL!wWVCa}D)C+wLu#2*6fi]L.=GghkI+R0ESP@Yp/a-!ug<u6!B6=RBg1n=.anj*("
 )
 
 type Lodge struct{
@@ -14,6 +20,10 @@ type Lodge struct{
 }
 
 type Kdate [3]byte
+
+type Btlen [3]byte
+
+type Btext [252]byte
 
 func (k Kdate) String() string {
 	return fmt.Sprintf("YYMMDD")
@@ -100,14 +110,16 @@ func Op2string(o byte) string {
 	case 2:
 		kop = "INTRO"
 	case 3:
-		kop = "TEMPO"
+		kop = "PRIVT"
 	case 4:
-		kop = "DFOLD"
+		kop = "TEMPO"
 	case 5:
-		kop = "NMACC"
+		kop = "DFOLD"
 	case 6:
-		kop = "ITEXT"
+		kop = "NMACC"
 	case 7:
+		kop = "ITEXT"
+	case 8:
 		kop = "REFR"
 	}
 	return kop
@@ -133,15 +145,60 @@ func (k Knod) Archive() string {
 
 
 type Body struct{ // 252 possble bytes of text
-	Pad1 byte  // 0 = lookup empty and terminal, 252 = url to content, 253 = text continued, 254 = text start, 255 = lookup empty but bounce
-	Pad2 [3] byte  // text length remaining including this
-	Text [252] byte
-	                // all utf8
+	Mode byte  // 0 = lookup empty and terminal, 252 = url to content, 253 = text continued, 254 = text start, 255 = lookup empty but bounce
+	Len Btlen  // text length remaining including this
+	Text Btext // utf8
 }
 
-func Emit(name string) {
+func (b Body) Archive() string {
+	lentag:="---"
+	if ((b.Len[2] == 0) && (b.Len[1] == 0) && (b.Len[0] < 253)) {
+		lentag = fmt.Sprintf("%03d",b.Len[0])
+	}
+	return fmt.Sprintf("%s%s",lentag,string(b.Text[:]))
+}
 
-	t := Knod { 
+func Hash0 (k Knod) Hash {
+
+	h:= Hash {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+
+	return h
+}
+
+func Hash1 (k Knod, b Body ) Hash {
+
+	h:= Hash {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+
+	return h
+}
+
+func Sign0 (ks,k Knod) Sign {
+
+	s:= Sign {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+	return s
+}
+
+func Sign1 (ks,k Knod, b Body ) Sign {
+
+	s:= Sign {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+	return s
+}
+
+func ZeroBody () Body {
+	return Body { 0, Btlen { 0, 0, 0 }, Btext {
+		32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
+		32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
+		32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
+		32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
+		32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
+		32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
+		32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
+		32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32}}
+}
+
+func ZeroKnod () Knod {
+
+	return Knod { 
 	0,
 	Kdate {0,0,0},
 	0,
@@ -155,8 +212,96 @@ func Emit(name string) {
 	Span6 {Hash {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},0, Twig6 {0,0,0,0,0,0}},
 	Sign {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}}
 
+}
 
+func MintLabel(s string) (Knod, Body) { // mints a universal label from a string up to 252 characters in length
+
+	k:= ZeroKnod()
+	b:= ZeroBody()
+	k.Op = 1
+	b.Mode = 254
+	l := len(s)
+	b.Len[0]=byte(l%256) // bytes 1 and 2 will be zero
+	for i:=0;i<l && i < 252; i++ {
+		b.Text[i]=s[i]
+	}
+	return k,b
+}
+
+func MintPrincipal() (Knod, Knod, Body, Knod, Body) { // mints a principal entity from an ed25519 private key and an ed25519 public key
+
+	k0:= ZeroKnod()
+	k0.Op = 4
+
+	k1:= ZeroKnod()
+	b1:= ZeroBody()
+	k1.Op = 2
+	b1.Mode = 254
+
+	pub, priv, _ := ed25519.GenerateKey(rand.Reader)
+	pub85, _ := z85.Encode(pub[:])
+	priv85, _ := z85.Encode(priv[:])
+
+	l := len(pub85)
+	b1.Len[0]=byte(l%256) // bytes 1 and 2 will be zero
+	for i:=0;i<l && i < 252; i++ {
+		b1.Text[i]=pub85[i]
+	}
+
+	k2:= ZeroKnod()
+	b2:= ZeroBody()
+	k2.Op = 3
+	b2.Mode = 254
+
+	l = len(priv85)
+	b2.Len[0]=byte(l%256) // bytes 1 and 2 will be zero
+	for i:=0;i<l && i < 252; i++ {
+		b2.Text[i]=priv85[i]
+	}
+
+
+	return k0,k1,b1,k2,b2
+}
+
+func Emit(name string) {
+
+	t,b := MintLabel("World")
 	fmt.Println( t.Archive() )
+	fmt.Println( b.Archive() )
+	t,b = MintLabel("Day")
+	fmt.Println( t.Archive() )
+	fmt.Println( b.Archive() )
+	t,b = MintLabel("Lodge")
+	fmt.Println( t.Archive() )
+	fmt.Println( b.Archive() )
+	t,b = MintLabel("Keychain")
+	fmt.Println( t.Archive() )
+	fmt.Println( b.Archive() )
+	t,b = MintLabel("Privatekey")
+	fmt.Println( t.Archive() )
+	fmt.Println( b.Archive() )
+	t,b = MintLabel("Instance")  //FQDN/subset
+	fmt.Println( t.Archive() )
+	fmt.Println( b.Archive() )
+	t,b = MintLabel("Principals")
+	fmt.Println( t.Archive() )
+	fmt.Println( b.Archive() )
+	t,b = MintLabel("Sessions")
+	fmt.Println( t.Archive() )
+	fmt.Println( b.Archive() )
+	t,b = MintLabel("Temporacle")
+	fmt.Println( t.Archive() )
+	fmt.Println( b.Archive() )
+	t,b = MintLabel("Timestamp")
+	fmt.Println( t.Archive() )
+	fmt.Println( b.Archive() )
+	t0,t1,b1,t2,b2 := MintPrincipal()
+	fmt.Println( t0.Archive() )
+	fmt.Println( t1.Archive() )
+	fmt.Println( b1.Archive() )
+	fmt.Println( t2.Archive() )
+	fmt.Println( b2.Archive() )
+	fmt.Println()
 	fmt.Println()
 }
 
@@ -166,7 +311,7 @@ func Format() { // write zeros to empty all blocks
 
 func Retrieve() { // hash and bounce (hash again, look again) until match or zeros
 	// a (very unlikely) hash resulting in all zeros is simply hashed again.
-	// a match with Op or Fld1 or Fld3  being zero or 255 is not a match
+	// a match with Op being zero or > 252 is not a match
 
 }
 
