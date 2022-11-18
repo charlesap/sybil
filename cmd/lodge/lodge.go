@@ -8,7 +8,7 @@ import (
 
 func main() {
 
-	base := lodge.Base {nil,nil,"","","",""}
+	base := lodge.Base {0,nil,nil,"","","",""}
 
 	e := base.Init("blockstore1","blockstore2")
 	if e != nil {
