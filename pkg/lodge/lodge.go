@@ -1,11 +1,15 @@
 package lodge
 
 import (
-    "fmt"
-    "time"
-    "crypto/rand"
-    "crypto/ed25519"
-    "github.com/nofeaturesonlybugs/z85"
+	"fmt"
+	"os"
+	"time"
+	"crypto/rand"
+	"crypto/ed25519"
+        "path/filepath"
+
+	"github.com/ncw/directio"
+	"github.com/nofeaturesonlybugs/z85"
 )
 
 const(
@@ -13,10 +17,46 @@ const(
 	wpriv85 = "NaVE{n8nqx=f+GIOL!wWVCa}D)C+wLu#2*6fi]L.=GghkI+R0ESP@Yp/a-!ug<u6!B6=RBg1n=.anj*("
 )
 
-type Lodge struct{
-	Fqdn [126] byte
-	Subn [126] byte
-	Bdev [256] byte
+type Base struct{
+	StoreA *os.File
+	StoreB *os.File
+	Fqdn string
+	Subn string
+	StoreNameA string
+	StoreNameB string
+}
+
+type Lodge interface{
+	Init(a,b string) error
+	Prepare() error
+}
+
+func (b Base) Init (fna, fnb string) (e error) {
+	b.StoreNameA = fna
+	b.StoreNameB = fnb
+	fmt.Println("\nStarting up Lodge\n")
+
+	baseName := filepath.Base(os.Args[0])
+
+	b.StoreA, e = directio.OpenFile(fna, os.O_RDONLY, 0666)
+	if e != nil {
+		return e
+	}
+	b.StoreB, e = directio.OpenFile(fnb, os.O_RDONLY, 0666)
+	if e != nil {
+		return e
+	}
+
+	fmt.Println("\nLodge store attached\n")
+
+	Emit(baseName)
+
+	return e
+}
+
+func (b Base) Prepare () error {
+
+	return nil
 }
 
 type Kdate [3]byte

@@ -1,8 +1,20 @@
 package main
 
+import (
+	"os"
+	"fmt"
+        "github.com/charlesap/sybil/pkg/lodge"
+)
+
 func main() {
 
-	Attach()
+	base := lodge.Base {nil,nil,"","","",""}
+
+	e := base.Init("blockstore1","blockstore2")
+	if e != nil {
+		fmt.Printf("lodge error: %s\n", e)
+		os.Exit(1)
+	}
 
 	go HandleUDP()
 
