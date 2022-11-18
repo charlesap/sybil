@@ -8,9 +8,9 @@ import (
 
 func main() {
 
-	base := lodge.Base {0,nil,nil,"","","",""}
+	base := lodge.Base {0,nil,"","",""}
 
-	e := base.Init("blockstore1","blockstore2")
+	e := base.Init("blockstore1")
 	if e != nil {
 		fmt.Printf("lodge error: %s\n", e)
 		os.Exit(1)

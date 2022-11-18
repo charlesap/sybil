@@ -7,8 +7,10 @@ import (
 	"crypto/rand"
 	"crypto/ed25519"
         "path/filepath"
+	"encoding/binary"
+//	"reflect"
 
-	"github.com/ncw/directio"
+//	"github.com/ncw/directio"
 	"github.com/nofeaturesonlybugs/z85"
 )
 
@@ -21,16 +23,17 @@ const(
 	AVAILABLE
 	LOADING
 	STANDBY
+
+//	knodSize = int(unsafe.Sizeof(Knod{}))
+//	bodySize = int(unsafe.Sizeof(Body{}))
 )
 
 type Base struct{
 	Status int
-	StoreA *os.File
-	StoreB *os.File
+	Store *os.File
 	Fqdn string
 	Subn string
-	StoreNameA string
-	StoreNameB string
+	StoreName string
 }
 
 type Lodge interface{
@@ -38,19 +41,15 @@ type Lodge interface{
 	Prepare() error
 }
 
-func (b Base) Init (fna, fnb string) (e error) {
+func (b Base) Init (fn string) (e error) {
 	b.Status = UNINITIALIZED 
-	b.StoreNameA = fna
-	b.StoreNameB = fnb
+	b.StoreName = fn
 	fmt.Println("\nInitializing Lodge\n")
 
 	baseName := filepath.Base(os.Args[0])
 
-	b.StoreA, e = directio.OpenFile(fna, os.O_RDONLY, 0666)
-	if e != nil {
-		return e
-	}
-	b.StoreB, e = directio.OpenFile(fnb, os.O_RDONLY, 0666)
+	b.Store, e = os.Open(fn)
+//	b.StoreA, e = directio.OpenFile(fna, os.O_RDONLY, 0666)
 	if e != nil {
 		return e
 	}
@@ -66,9 +65,22 @@ func (b Base) Init (fna, fnb string) (e error) {
 	return e
 }
 
-func (b Base) Prepare () error {
+func (b Base) KnodByIndex (i Kndx ) (Knod, error) {
 
-	return nil
+//	var k *Knod
+
+//	block := directio.AlignedBlock(directio.BlockSize)
+//	_, err := io.ReadFull(b.StoreA, 0)
+
+	k := Knod{}
+	e := binary.Read(b.Store, binary.LittleEndian, &k)
+
+	return k, e
+}
+
+func (b Base) BodyByIndex (i Kndx ) (*Body, error) {
+
+	return nil, nil
 }
 
 type Kdate [3]byte
