@@ -18,26 +18,26 @@ const(
 	wpub85 = "=GghkI+R0ESP@Yp/a-!ug<u6!B6=RBg1n=.anj*("
 	wpriv85 = "NaVE{n8nqx=f+GIOL!wWVCa}D)C+wLu#2*6fi]L.=GghkI+R0ESP@Yp/a-!ug<u6!B6=RBg1n=.anj*("
 
-	UNINITIALIZED int = iota // Lodge status
-	UNPREPARED
-	AVAILABLE
-	LOADING
-	STANDBY
+	UNINITIALIZED int = 0 // Lodge status
+	UNPREPARED int = 1
+	AVAILABLE int = 2
+	LOADING int = 3
+	STANDBY int = 4
 
-	KFREE int = iota
-	LABEL
-	INTRO
-	PRIVT
-	TEMPO
-	DFOLD
-	NMACC
-	ITEXT
-	REFER
-	KROOT int = 251
-	BDURL int = 252
-	BODYN int = 253
-	BODY0 int = 254
-	KBNCE int = 255
+	KFREE byte = 0
+	LABEL byte = 1
+	INTRO byte = 2
+	PRIVT byte = 3
+	TEMPO byte = 4
+	DFOLD byte = 5
+	NMACC byte = 6
+	ITEXT byte = 7
+	REFER byte = 8
+	KROOT byte = 251
+	BDURL byte = 252
+	BODYN byte = 253
+	BODY0 byte = 254
+	KBNCE byte = 255
 
 //	knodSize = int(unsafe.Sizeof(Knod{}))
 //	bodySize = int(unsafe.Sizeof(Body{}))
@@ -94,6 +94,8 @@ func (b Base) KnodByIndex (i Kndx ) (Knod, error) {
 
 	k := Knod{}
 	e := binary.Read(b.Store, binary.LittleEndian, &k)
+
+	fmt.Println("result...",k.Op,Op2string(k.Op))
 
 	return k, e
 }
@@ -185,33 +187,33 @@ type Knod struct{ // 256 bytes // knowledge node, Tnod is a text representation
 }
 
 func Op2string(o byte) string {
-	kop := "UNKWN"
-	switch int(o) {
+
+	switch o {
 	case KFREE:
-		kop = "KFREE"
+		return "KFREE"
 	case LABEL:
-		kop = "LABEL"
+		return "LABEL"
 	case INTRO:
-		kop = "INTRO"
+		return "INTRO"
 	case PRIVT:
-		kop = "PRIVT"
+		return "PRIVT"
 	case TEMPO:
-		kop = "TEMPO"
+		return "TEMPO"
 	case DFOLD:
-		kop = "DFOLD"
+		return "DFOLD"
 	case NMACC:
-		kop = "NMACC"
+		return "NMACC"
 	case ITEXT:
-		kop = "ITEXT"
+		return "ITEXT"
 	case REFER:
-		kop = "REFR"
+		return "REFR"
 	}
-	if int(o) == KROOT { kop = "KROOT" }
-	if int(o) == BDURL { kop = "BDURL" }
-	if int(o) == BODYN { kop = "BODYN" }
-	if int(o) == BODY0 { kop = "BODY0" }
-	if int(o) == KBNCE { kop = "KBNCE" }
-	return kop
+	if o == KROOT { return "KROOT" }
+	if o == BDURL { return "BDURL" }
+	if o == BODYN { return "BODYN" }
+	if o == BODY0 { return "BODY0" }
+	if o == KBNCE { return "KBNCE" }
+	return "UNKWN"
 }
 
 func (k Knod) UnixTime() time.Time {
