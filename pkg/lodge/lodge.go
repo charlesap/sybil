@@ -24,6 +24,21 @@ const(
 	LOADING
 	STANDBY
 
+	KFREE int = iota
+	LABEL
+	INTRO
+	PRIVT
+	TEMPO
+	DFOLD
+	NMACC
+	ITEXT
+	REFER
+	KROOT int = 251
+	BDURL int = 252
+	BODYN int = 253
+	BODY0 int = 254
+	KBNCE int = 255
+
 //	knodSize = int(unsafe.Sizeof(Knod{}))
 //	bodySize = int(unsafe.Sizeof(Body{}))
 )
@@ -49,13 +64,18 @@ func (b Base) Init (fn string) (e error) {
 	baseName := filepath.Base(os.Args[0])
 
 	b.Store, e = os.Open(fn)
-//	b.StoreA, e = directio.OpenFile(fna, os.O_RDONLY, 0666)
 	if e != nil {
 		return e
 	}
 	b.Status = UNPREPARED
 
-	fmt.Println("\nPreparing Lodge\n")
+	var k Knod
+	k,e = b.KnodByIndex(0)
+	if e != nil {
+		return e
+	}
+
+	fmt.Println("\nPreparing Lodge %v\n",k)
 
 	b.Status = AVAILABLE
 	fmt.Println("\nLodge available\n")
@@ -166,26 +186,31 @@ type Knod struct{ // 256 bytes // knowledge node, Tnod is a text representation
 
 func Op2string(o byte) string {
 	kop := "UNKWN"
-	switch o {
-	case 0:
+	switch int(o) {
+	case KFREE:
 		kop = "KFREE"
-	case 1:
+	case LABEL:
 		kop = "LABEL"
-	case 2:
+	case INTRO:
 		kop = "INTRO"
-	case 3:
+	case PRIVT:
 		kop = "PRIVT"
-	case 4:
+	case TEMPO:
 		kop = "TEMPO"
-	case 5:
+	case DFOLD:
 		kop = "DFOLD"
-	case 6:
+	case NMACC:
 		kop = "NMACC"
-	case 7:
+	case ITEXT:
 		kop = "ITEXT"
-	case 8:
+	case REFER:
 		kop = "REFR"
 	}
+	if int(o) == KROOT { kop = "KROOT" }
+	if int(o) == BDURL { kop = "BDURL" }
+	if int(o) == BODYN { kop = "BODYN" }
+	if int(o) == BODY0 { kop = "BODY0" }
+	if int(o) == KBNCE { kop = "KBNCE" }
 	return kop
 }
 
