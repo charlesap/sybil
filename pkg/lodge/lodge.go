@@ -172,6 +172,8 @@ func Hash1 (k Knod, b Body ) Hash {
 	return h
 }
 
+// sign the concatenated binary value of the op, date, tag hash, parent hash, ref hash, text content.
+
 func Sign0 (ks,k Knod) Sign {
 
 	s:= Sign {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
