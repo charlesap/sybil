@@ -8,6 +8,7 @@ import (
 	"time"
 	"crypto/rand"
 	"crypto/ed25519"
+	"crypto/sha256"
         "path/filepath"
 	"encoding/binary"
 
@@ -39,8 +40,10 @@ const(
 	BODY0 byte = 254
 	KBNCE byte = 255
 
-	SIGN = 1
-	VERIFY = 2
+	HASH = 1
+	HASHSIGN = 2
+	SIGN = 3
+	VERIFY = 4
 
 )
 
@@ -123,6 +126,9 @@ func (b Base) Init (fn string, reinit bool) (e error) {
 			k.Op=KROOT
 			e = b.WriteKnodBlock(k,0)
 			if e != nil {return e}
+
+			b.mintPreULs()
+
 			fmt.Println("\nPrepared Lodge\n")
 		}
 	}else{
@@ -135,6 +141,16 @@ func (b Base) Init (fn string, reinit bool) (e error) {
 	Emit(baseName)
 
 	return e
+}
+
+func (b Base) mintPreULs(){
+
+	for _,v:=range preUL {
+		t,b := MintLabel(v)
+		t.HashSignVerify ( HASHSIGN, nil,nil,nil,&b,nil,nil ) 
+		fmt.Println( t.Archive() )
+		fmt.Println( b.Archive() )
+	}
 }
 
 func (b Base) ReadKnodBlock (i uint64 ) (*Knod, error) {
@@ -324,16 +340,14 @@ func Hash1 (k Knod, b Body ) Hash {
 	return h
 }
 
-// sign the concatenated binary value of the op, date, tag hash, parent hash, ref hash, text content.
-
-
-func SignVerify (svo int, ks,kp,kt,k *Knod, b,bs,bv *Body ) (signature []byte, ok bool) {
+// hash, sign, or verify the concatenated binary value of the op, date, tag hash, parent hash, ref hash, text content.
+func (k *Knod) HashSignVerify (svo int, ks,kp,kt *Knod, b,bs,bv *Body ) (ok bool) {
 
 	// knod signature form without body text in bytes:
 	// 1  @ 0 Op, universal LABEL is 1
 	// 1  @ 1 Depth, zero if universal label
 	// 6  @ 2 Date
-	// 28 @ 8 Self hash, may be zeros if universal label (but a UL will use Sign1)
+	// 28 @ 8 Self hash
 	// 28 @ 36 Reference hash, may be zeros if universal label or not-referring, may be dangling (not have a native knod to refer to)
 	// 28 @ 64 Hash of signer, may be zeros if universal label, in which case signed by wpriv
 	// 28 @ 92 Parent hash, may be zeros if universal label
@@ -357,8 +371,7 @@ func SignVerify (svo int, ks,kp,kt,k *Knod, b,bs,bv *Body ) (signature []byte, o
 
 	buf[0] = k.Op
 	buf[1] = k.Idpt
-	for i:=0;i<6;i++ { buf [2+i]= k.Date[i] } // please optimize
-	if k.Op != LABEL { for i:=0;i<28;i++ { buf [8+i]= k.Hk[i] } }
+	for i:=0;i<6;i++ { buf [2+i]= k.Date[i] }
 	if k.Op != LABEL { for i:=0;i<28;i++ { buf [36+i]= k.Hr[i] } }
 	if k.Op != LABEL { for i:=0;i<28;i++ { buf [64+i]= ks.Hk[i] } }
 	if k.Op != LABEL { for i:=0;i<28;i++ { buf [92+i]= kp.Hk[i] } }
@@ -375,13 +388,30 @@ func SignVerify (svo int, ks,kp,kt,k *Knod, b,bs,bv *Body ) (signature []byte, o
 		vkey, _ = z85.Decode(string(bs.Text[:vlen]))
 	}
 
-	if svo == SIGN {
-		signature = ed25519.Sign(skey, buf)
-		return signature, true
-	}else{
-		ok = ed25519.Verify(vkey, buf, k.S[:] )
-		return nil, ok
+	if (svo == HASH) || (svo == HASHSIGN) {
+		h := sha256.New()
+		h.Write(buf)
+		hash := h.Sum(nil)
+		for i:=0;i<28;i++{ k.Hk[i]=hash[i] }
+		for i:=0;i<28;i++{ buf [8+i]= k.Hk[i] }
+		ok = true
+	}else{ //buffer needs self-hash after hashing to be included in signing
+		for i:=0;i<28;i++ { buf [8+i]= k.Hk[i] }
 	}
+
+	if (svo == SIGN) || (svo == HASHSIGN) {
+		signature := ed25519.Sign(skey, buf)
+		for i:=0;i<64;i++{ k.S[i]=signature[i] }
+		ok = true
+	}
+
+	if svo == VERIFY {
+		ok = ed25519.Verify(vkey, buf, k.S[:] )
+
+	}
+
+
+	return ok
 }
 
 func ZeroBody () Body {
@@ -497,36 +527,36 @@ func MintPrincipal() (Knod, Knod, Body, Knod, Body) { // mints a principal entit
 
 func Emit(name string) {
 
-	t,b := MintLabel("World")
-	fmt.Println( t.Archive() )
-	fmt.Println( b.Archive() )
-	t,b = MintLabel("Day")
-	fmt.Println( t.Archive() )
-	fmt.Println( b.Archive() )
-	t,b = MintLabel("Lodge")
-	fmt.Println( t.Archive() )
-	fmt.Println( b.Archive() )
-	t,b = MintLabel("Keychain")
-	fmt.Println( t.Archive() )
-	fmt.Println( b.Archive() )
-	t,b = MintLabel("Privatekey")
-	fmt.Println( t.Archive() )
-	fmt.Println( b.Archive() )
-	t,b = MintLabel("Instance")  //FQDN/subset
-	fmt.Println( t.Archive() )
-	fmt.Println( b.Archive() )
-	t,b = MintLabel("Principals")
-	fmt.Println( t.Archive() )
-	fmt.Println( b.Archive() )
-	t,b = MintLabel("Sessions")
-	fmt.Println( t.Archive() )
-	fmt.Println( b.Archive() )
-	t,b = MintLabel("Temporacle")
-	fmt.Println( t.Archive() )
-	fmt.Println( b.Archive() )
-	t,b = MintLabel("Timestamp")
-	fmt.Println( t.Archive() )
-	fmt.Println( b.Archive() )
+//	t,b := MintLabel("World")
+//	fmt.Println( t.Archive() )
+//	fmt.Println( b.Archive() )
+//	t,b = MintLabel("Day")
+//	fmt.Println( t.Archive() )
+//	fmt.Println( b.Archive() )
+//	t,b = MintLabel("Lodge")
+//	fmt.Println( t.Archive() )
+//	fmt.Println( b.Archive() )
+//	t,b = MintLabel("Keychain")
+//	fmt.Println( t.Archive() )
+//	fmt.Println( b.Archive() )
+//	t,b = MintLabel("Privatekey")
+//	fmt.Println( t.Archive() )
+//	fmt.Println( b.Archive() )
+//	t,b = MintLabel("Instance")  //FQDN/subset
+//	fmt.Println( t.Archive() )
+//	fmt.Println( b.Archive() )
+//	t,b = MintLabel("Principals")
+//	fmt.Println( t.Archive() )
+//	fmt.Println( b.Archive() )
+//	t,b = MintLabel("Sessions")
+//	fmt.Println( t.Archive() )
+//	fmt.Println( b.Archive() )
+//	t,b = MintLabel("Temporacle")
+//	fmt.Println( t.Archive() )
+//	fmt.Println( b.Archive() )
+//	t,b = MintLabel("Timestamp")
+//	fmt.Println( t.Archive() )
+//	fmt.Println( b.Archive() )
 	t0,t1,b1,t2,b2 := MintPrincipal()
 	fmt.Println( t0.Archive() )
 	fmt.Println( t1.Archive() )
