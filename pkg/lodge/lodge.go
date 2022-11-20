@@ -8,9 +8,7 @@ import (
 	"crypto/ed25519"
         "path/filepath"
 	"encoding/binary"
-//	"reflect"
 
-//	"github.com/ncw/directio"
 	"github.com/nofeaturesonlybugs/z85"
 )
 
@@ -38,11 +36,6 @@ const(
 	BODYN byte = 253
 	BODY0 byte = 254
 	KBNCE byte = 255
-
-
-
-//	knodSize = int(unsafe.Sizeof(Knod{}))
-//	bodySize = int(unsafe.Sizeof(Body{}))
 )
 
 type Base struct{
@@ -72,7 +65,7 @@ func (b Base) Init (fn string) (e error) {
 	b.Status = UNPREPARED
 
 	var k Knod
-	k,e = b.KnodByIndex(Kndx{0,0,0,0,0,0})
+	k,e = b.KnodByIndex(0)
 	if e != nil {
 		return e
 	}
@@ -87,12 +80,7 @@ func (b Base) Init (fn string) (e error) {
 	return e
 }
 
-func (b Base) KnodByIndex (i Kndx ) (Knod, error) {
-
-//	var k *Knod
-
-//	block := directio.AlignedBlock(directio.BlockSize)
-//	_, err := io.ReadFull(b.StoreA, 0)
+func (b Base) KnodByIndex (i uint64 ) (Knod, error) {
 
 	k := Knod{}
 	e := binary.Read(b.Store, binary.LittleEndian, &k)
@@ -278,6 +266,36 @@ func ZeroKnod () Knod {
 	Slst {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 	Sign {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}}
 
+}
+
+func (k Knod) Sign0 ( priv Body ) Sign {
+
+	return Sign {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+}
+
+func (k Knod) Sign1 ( b Body, priv Body ) Sign {
+
+	return Sign {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+}
+
+func (k Knod) SignN ( b Body, priv Body ) Sign {
+
+	return Sign {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+}
+
+func (k Knod) Verify0 ( pub Body ) bool {
+
+	return false
+}
+
+func (k Knod) Verify1 ( b Body, pub Body ) bool {
+
+	return false
+}
+
+func (k Knod) VerifyN ( b Body, pub Body ) bool {
+
+	return false
 }
 
 func MintLabel(s string) (Knod, Body) { // mints a universal label from a string up to 252 characters in length
