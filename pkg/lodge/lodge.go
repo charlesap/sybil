@@ -2,6 +2,7 @@ package lodge
 
 import (
 	"fmt"
+	"bytes"
 	"os"
 	"time"
 	"crypto/rand"
@@ -36,6 +37,14 @@ const(
 	BODYN byte = 253
 	BODY0 byte = 254
 	KBNCE byte = 255
+
+	SIGN = 1
+	VERIFY = 2
+)
+
+var (
+	wpub   ed25519.PublicKey    // for content universally signed identically by anyone
+	wpriv  ed25519.PrivateKey
 )
 
 type Base struct{
@@ -52,6 +61,26 @@ type Lodge interface{
 }
 
 func (b Base) Init (fn string) (e error) {
+
+	buf, _ := z85.Decode(wpriv85)
+	wpriv = ed25519.PrivateKey(buf)
+	buf, _ =  z85.Decode(wpub85)
+	wpub =  ed25519.PublicKey(buf)
+
+	buf = []byte("Hello There")
+
+	signature := ed25519.Sign(wpriv, buf)
+	sig85,_ := z85.Encode(signature)
+	fmt.Printf("Signature! %s\n",sig85)
+
+	binsig,_ :=z85.Decode(sig85)
+
+	if (bytes.Compare(signature,binsig)==0) {fmt.Println("enc85/dec85 works...")}
+
+	ok := ed25519.Verify(wpub, buf, binsig)
+
+	if ok {fmt.Println("signature check successful")}
+
 	b.Status = UNINITIALIZED 
 	b.StoreName = fn
 	fmt.Println("\nInitializing Lodge\n")
@@ -224,16 +253,62 @@ func Hash1 (k Knod, b Body ) Hash {
 
 // sign the concatenated binary value of the op, date, tag hash, parent hash, ref hash, text content.
 
-func Sign0 (ks,k Knod) Sign {
 
-	s:= Sign {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
-	return s
-}
+func SignVerify (svo int, ks,kp,kt,k *Knod, b,bs,bv *Body ) (signature []byte, ok bool) {
 
-func Sign1 (ks,k Knod, b Body ) Sign {
+	// knod signature form without body text in bytes:
+	// 1  @ 0 Op, universal LABEL is 1
+	// 1  @ 1 Depth, zero if universal label
+	// 6  @ 2 Date
+	// 28 @ 8 Self hash, may be zeros if universal label (but a UL will use Sign1)
+	// 28 @ 36 Reference hash, may be zeros if universal label or not-referring, may be dangling (not have a native knod to refer to)
+	// 28 @ 64 Hash of signer, may be zeros if universal label, in which case signed by wpriv
+	// 28 @ 92 Parent hash, may be zeros if universal label
+	// 28 @ 120 Tag hsh, may be zeros if universal label or tagless
+	// 148 total bytes + length of body text if any
 
-	s:= Sign {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
-	return s
+	blen:=0
+	slen:=0
+	vlen:=0
+	if (b!=nil){
+		blen = int(b.Len[0])+(int(b.Len[1])*256)+(int(b.Len[2])*65536)
+	}
+	if (bs!=nil){
+		slen =int(bs.Len[0])+(int(bs.Len[1])*256)+(int(bs.Len[2])*65536)
+	}
+	if (bv!=nil){
+		vlen =int(bv.Len[0])+(int(bv.Len[1])*256)+(int(bv.Len[2])*65536)
+	}
+
+	buf := make([]byte,148+blen) // relying on being initialized to zero
+
+	buf[0] = k.Op
+	buf[1] = k.Idpt
+	for i:=0;i<6;i++ { buf [2+i]= k.Date[i] } // please optimize
+	if k.Op != LABEL { for i:=0;i<28;i++ { buf [8+i]= k.Hk[i] } }
+	if k.Op != LABEL { for i:=0;i<28;i++ { buf [36+i]= k.Hr[i] } }
+	if k.Op != LABEL { for i:=0;i<28;i++ { buf [64+i]= ks.Hk[i] } }
+	if k.Op != LABEL { for i:=0;i<28;i++ { buf [92+i]= kp.Hk[i] } }
+	if k.Op != LABEL { for i:=0;i<28;i++ { buf [120+i]= kt.Hk[i] } }
+
+	if blen > 0 { for i:=0;i<blen;i++ { buf [148+i]= b.Text[i] } }
+
+	skey := wpriv
+	vkey := wpub
+	if (k.Op != LABEL) && (slen > 0) {
+		skey, _ = z85.Decode(string(bs.Text[:slen]))
+	}
+	if (k.Op != LABEL) && (vlen > 0) {
+		vkey, _ = z85.Decode(string(bs.Text[:vlen]))
+	}
+
+	if svo == SIGN {
+		signature = ed25519.Sign(skey, buf)
+		return signature, true
+	}else{
+		ok = ed25519.Verify(vkey, buf, k.S[:] )
+		return nil, ok
+	}
 }
 
 func ZeroBody () Body {
@@ -268,32 +343,32 @@ func ZeroKnod () Knod {
 
 }
 
-func (k Knod) Sign0 ( priv Body ) Sign {
+func (k Knod) Sign0 ( priv []byte ) Sign {
 
 	return Sign {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 }
 
-func (k Knod) Sign1 ( b Body, priv Body ) Sign {
+func (k Knod) Sign1 ( b Body, priv []byte ) Sign {
 
 	return Sign {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 }
 
-func (k Knod) SignN ( b Body, priv Body ) Sign {
+func (k Knod) SignN ( b Body, priv []byte ) Sign {
 
 	return Sign {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 }
 
-func (k Knod) Verify0 ( pub Body ) bool {
+func (k Knod) Verify0 ( pub []byte ) bool {
 
 	return false
 }
 
-func (k Knod) Verify1 ( b Body, pub Body ) bool {
+func (k Knod) Verify1 ( b Body, pub []byte ) bool {
 
 	return false
 }
 
-func (k Knod) VerifyN ( b Body, pub Body ) bool {
+func (k Knod) VerifyN ( b Body, pub []byte ) bool {
 
 	return false
 }
