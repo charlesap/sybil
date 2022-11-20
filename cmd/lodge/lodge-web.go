@@ -6,7 +6,6 @@ import (
 	"context"
 	"crypto/tls"
 	"strconv"
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -172,16 +171,12 @@ func makeHTTPToHTTPSRedirectServer() *http.Server {
 	return makeServerFromMux(mux)
 }
 
-func parseFlags() {
-	flag.BoolVar(&flgVerbose, "v", false, "if true, more logging")
-	flag.BoolVar(&flgProduction, "p", false, "if true, we start HTTPS server")
-	flag.BoolVar(&flgRedirectHTTPToHTTPS, "r", false, "if true, we redirect HTTP to HTTPS")
-	flag.Parse()
-}
 
+func Webmain(verb,prod,red bool) {
 
-
-func Webmain() {
+	flgVerbose             = verb
+	flgProduction          = prod
+	flgRedirectHTTPToHTTPS = red
 
 	bundle = i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
@@ -189,7 +184,6 @@ func Webmain() {
 	bundle.MustLoadMessageFile("web/static/active.en.toml")
 	bundle.MustLoadMessageFile("web/static/active.es.toml")
 
-	parseFlags()
 	var m *autocert.Manager
 
 	var httpsSrv *http.Server

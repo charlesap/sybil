@@ -2,7 +2,8 @@ package lodge
 
 import (
 	"fmt"
-	"bytes"
+//	"bytes"
+	"errors"
 	"os"
 	"time"
 	"crypto/rand"
@@ -40,16 +41,19 @@ const(
 
 	SIGN = 1
 	VERIFY = 2
+
 )
 
 var (
 	wpub   ed25519.PublicKey    // for content universally signed identically by anyone
 	wpriv  ed25519.PrivateKey
+	preUL = []string {"World","Day","Lodge","Keychain","Privatekey","Instance","Principals","Sessions","Temporacle","Timestamp"}
 )
 
 type Base struct{
 	Status int
 	Store *os.File
+	Limit uint64
 	Fqdn string
 	Subn string
 	StoreName string
@@ -60,46 +64,70 @@ type Lodge interface{
 	Prepare() error
 }
 
-func (b Base) Init (fn string) (e error) {
+func (b Base) Init (fn string, reinit bool) (e error) {
 
 	buf, _ := z85.Decode(wpriv85)
 	wpriv = ed25519.PrivateKey(buf)
 	buf, _ =  z85.Decode(wpub85)
 	wpub =  ed25519.PublicKey(buf)
 
-	buf = []byte("Hello There")
-
-	signature := ed25519.Sign(wpriv, buf)
-	sig85,_ := z85.Encode(signature)
-	fmt.Printf("Signature! %s\n",sig85)
-
-	binsig,_ :=z85.Decode(sig85)
-
-	if (bytes.Compare(signature,binsig)==0) {fmt.Println("enc85/dec85 works...")}
-
-	ok := ed25519.Verify(wpub, buf, binsig)
-
-	if ok {fmt.Println("signature check successful")}
+//	buf = []byte("Hello There")
+//
+//	signature := ed25519.Sign(wpriv, buf)
+//	sig85,_ := z85.Encode(signature)
+//	fmt.Printf("Signature! %s\n",sig85)
+//
+//	binsig,_ :=z85.Decode(sig85)
+//
+//	if (bytes.Compare(signature,binsig)==0) {fmt.Println("enc85/dec85 works...")}
+//
+//	ok := ed25519.Verify(wpub, buf, binsig)
+//
+//	if ok {fmt.Println("signature check successful")}
 
 	b.Status = UNINITIALIZED 
 	b.StoreName = fn
-	fmt.Println("\nInitializing Lodge\n")
+	fmt.Println("\nPreparing Lodge\n")
 
 	baseName := filepath.Base(os.Args[0])
 
-	b.Store, e = os.Open(fn)
+	b.Store, e = os.OpenFile(fn, os.O_RDWR, 0777)
 	if e != nil {
 		return e
 	}
+
+	fi, err := b.Store.Stat()
+	if err != nil {
+		return err
+	}
+
+	b.Limit = uint64(fi.Size() / 256)
+
 	b.Status = UNPREPARED
 
-	var k Knod
-	k,e = b.KnodByIndex(0)
+	var k *Knod
+	k,e = b.ReadKnodBlock(0)
 	if e != nil {
 		return e
 	}
 
-	fmt.Println("\nPreparing Lodge %v\n",k)
+	if (k.Op != KROOT) || (reinit == true) {
+		if (k.Op != KROOT) && (reinit == false) {
+			return errors.New("datastore not initialized and reinitialize not requested") 
+		}else{
+			if k.Op == KROOT {
+				fmt.Println("\nRe-initializing Lodge\n")
+			}else{
+				fmt.Println("\nInitializing Lodge\n")
+			}
+			k.Op=KROOT
+			e = b.WriteKnodBlock(k,0)
+			if e != nil {return e}
+			fmt.Println("\nPrepared Lodge\n")
+		}
+	}else{
+		fmt.Println("\nServing from Existing Lodge\n")
+	}
 
 	b.Status = AVAILABLE
 	fmt.Println("\nLodge available\n")
@@ -109,19 +137,64 @@ func (b Base) Init (fn string) (e error) {
 	return e
 }
 
-func (b Base) KnodByIndex (i uint64 ) (Knod, error) {
+func (b Base) ReadKnodBlock (i uint64 ) (*Knod, error) {
+
+	if i > b.Limit { return nil, errors.New("attempt to read beyond end of store") }
+
+	_, err := b.Store.Seek(int64(i*256), 0)
+	if err != nil {
+	   return nil, err
+	}
 
 	k := Knod{}
+
 	e := binary.Read(b.Store, binary.LittleEndian, &k)
 
-	fmt.Println("result...",k.Op,Op2string(k.Op))
-
-	return k, e
+	return &k, e
 }
 
-func (b Base) BodyByIndex (i Kndx ) (*Body, error) {
+func (b Base) WriteKnodBlock (k * Knod, i uint64 ) error {
 
-	return nil, nil
+	if i > b.Limit { errors.New("attempt to write beyond end of store") }
+
+	_, err := b.Store.Seek(int64(i*256), 0)
+	if err != nil {
+	   return err
+	}
+
+	e := binary.Write(b.Store, binary.LittleEndian, k)
+
+	return e
+}
+
+func (b Base) ReadBodyBlock (i uint64 ) (*Body, error) {
+
+	if i > b.Limit { return nil, errors.New("attempt to read beyond end of store") }
+
+	_, err := b.Store.Seek(int64(i*256), 0)
+	if err != nil {
+	   return nil, err
+	}
+
+	kb := Body{}
+
+	e := binary.Read(b.Store, binary.LittleEndian, &kb)
+
+	return &kb, e
+}
+
+func (b Base) WriteBodyBlock (kb * Knod, i uint64 ) error {
+
+	if i > b.Limit { errors.New("attempt to write beyond end of store") }
+
+	_, err := b.Store.Seek(int64(i*256), 0)
+	if err != nil {
+	   return err
+	}
+
+	e := binary.Write(b.Store, binary.LittleEndian, kb)
+
+	return e
 }
 
 type Kdate [6]byte
