@@ -143,14 +143,72 @@ func (b Base) Init (fn string, reinit bool) (e error) {
 	return e
 }
 
+func hash2block( h *Hash, i int, l uint64) uint64 { //i may range from 0 to 19 on bounce to next hash location
+
+	return (uint64(h[i])+
+	      (uint64(h[i+1])<<8)+
+	      (uint64(h[i+2])<<16)+
+	      (uint64(h[i+3])<<24)+
+	      (uint64(h[i+4])<<32)+
+	      (uint64(h[i+5])<<40)+
+	      (uint64(h[i+6])<<48)+
+	      (uint64(h[i+7])<<56))%l
+}
+
 func (b Base) mintPreULs(){
 
 	for _,v:=range preUL {
-		t,b := MintLabel(v)
-		t.HashSignVerify ( HASHSIGN, nil,nil,nil,&b,nil,nil ) 
-		fmt.Println( t.Archive() )
-		fmt.Println( b.Archive() )
+		kt,kb := MintLabel(v)
+		kt.HashSignVerify ( HASHSIGN, nil,nil,nil,&kb,nil,nil )
+		tloc:=hash2block(&kt.Hk,0,b.Limit)
+		if b.isfree(tloc,2) {
+			e:=b.WriteKnodBlock(&kt,tloc)
+			if e !=nil {
+				fmt.Printf("error writing knod")
+			}
+			e=b.WriteBodyBlock(&kb,tloc+1)
+			if e !=nil {
+				fmt.Printf("error writing body")
+			}
+		}else{
+			fmt.Printf("guess we have to bounce now")
+			os.Exit(1)
+		}
+		fmt.Println( tloc, kt.Archive() )
+		fmt.Println( kb.Archive() )
 	}
+}
+
+func (b Base) isfree( i uint64, s int) (avail bool) {
+
+   avail = false
+
+   if (s > 0) && (s < 3) {
+
+   fmt.Println("checking to see if block ", i, " with count ",s," is available where the limit is ",b.Limit)
+
+        k1 := make([]byte, 1)
+	k1[0] = 255
+	k2 := make([]byte, 1)
+	k2[0] = 255
+
+
+	if i > b.Limit { return false }
+
+	_, _ = b.Store.Seek(int64(i*256), 0)
+	_, _ = b.Store.Read(k1)
+
+	if (s == 2) && (k1[0]==0) {
+		if i+1 > b.Limit { return false }
+		_, _ = b.Store.Seek(int64((i+1)*256), 0)
+		_, _ = b.Store.Read(k2)
+		if k2[0] == 0 {avail = true}
+	}else{
+		if k1[0] == 0 {avail = true}
+	}
+   }
+
+   return avail
 }
 
 func (b Base) ReadKnodBlock (i uint64 ) (*Knod, error) {
@@ -199,7 +257,7 @@ func (b Base) ReadBodyBlock (i uint64 ) (*Body, error) {
 	return &kb, e
 }
 
-func (b Base) WriteBodyBlock (kb * Knod, i uint64 ) error {
+func (b Base) WriteBodyBlock (kb * Body, i uint64 ) error {
 
 	if i > b.Limit { errors.New("attempt to write beyond end of store") }
 
@@ -228,6 +286,10 @@ type Hash [28] byte
 func (h Hash) Archive() string {
 	t, _ := z85.Encode(h[:])
 	return t
+}
+
+func (h Hash) String() string {
+	return fmt.Sprintf("%x",h)
 }
 
 type Sign [64] byte
