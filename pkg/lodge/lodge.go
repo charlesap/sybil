@@ -10,7 +10,7 @@ import (
 	"crypto/ed25519"
 	"crypto/sha256"
         "path/filepath"
-	"encoding/binary"
+//	"encoding/binary"
 
 	"github.com/nofeaturesonlybugs/z85"
 )
@@ -52,11 +52,11 @@ var (
 	wpriv  ed25519.PrivateKey
 	preUL = [][]string {{"en---:World",      "es---:Mundo",            "fr---:Monde",          "cn---:世界",    "jp---:世界",            "de---:Welt" },
 			    {"en---:Day",        "es---:Día",              "fr---:Jour",           "cn---:天",      "jp---:日",              "de---:Tag" },
-			    {"en---:Lodge",      "es---:Alojarse",         "fr---:hôtel",          "cn---:小屋",    "jp---:ロッジ",          "de---:Hütte" },
+			    {"en---:Lodge",      "es---:Alojarse",         "fr---:Hôtel",          "cn---:小屋",    "jp---:ロッジ",          "de---:Hütte" },
 			    {"en---:Keychain",   "es---:Llavero",          "fr---:Porte-clés",     "cn---:钥匙链",  "jp---:キーホルダー",    "de---:Schlüsselbund" },
 			    {"en---:Secret",     "es---:Secreto",          "fr---:Secret",         "cn---:秘密",    "jp---:ひみつ",          "de---:Geheimnis" },
 			    {"en---:Instance",   "es---:Instancia",        "fr---:Exemple",        "cn---:实例",    "jp---:実例",            "de---:Beispiel" },
-			    {"en---:Principal",  "es---:principal",        "fr---:directeur",      "cn---:主要的",  "jp---:主要",            "de---:Rektor" },
+			    {"en---:Principal",  "es---:principal",        "fr---:Directeur",      "cn---:主要的",  "jp---:主要",            "de---:Rektor" },
 			    {"en---:Session",    "es---:Sesión",           "fr---:Session",        "cn---:会议",    "jp---:セッション",      "de---:Sitzung" },
 			    {"en---:Timekeeper", "es---:Cronometrador",    "fr---:Chronométreur",  "cn---:计时员",  "jp---:タイムキーパー",  "de---:Zeitnehmer" },
 			    {"en---:Timestamp",  "es---:Marca de Tiempo",  "fr---:Horodatage",     "cn---:时间戳",  "jp---:タイムスタンプ",  "de---:Zeitstempel" }}
@@ -136,7 +136,8 @@ func (b Base) Init (fn string, reinit bool) (e error) {
 			e = b.WriteKnodBlock(k,0)
 			if e != nil {return e}
 
-			b.mintPreULs()
+			e = b.mintPreULs()
+			if e != nil {return e}
 
 			fmt.Println("\nPrepared Lodge\n")
 		}
@@ -152,136 +153,44 @@ func (b Base) Init (fn string, reinit bool) (e error) {
 	return e
 }
 
-func hash2block( h *Hash, i int, l uint64) uint64 { //i may range from 0 to 19 on bounce to next hash location
+func (b Base) place2(kt *Knod, kb *Body) (e error) {
+	e = nil
 
-	return (uint64(h[i])+
-	      (uint64(h[i+1])<<8)+
-	      (uint64(h[i+2])<<16)+
-	      (uint64(h[i+3])<<24)+
-	      (uint64(h[i+4])<<32)+
-	      (uint64(h[i+5])<<40)+
-	      (uint64(h[i+6])<<48)+
-	      (uint64(h[i+7])<<56))%l
+	tloc:=hash2block(&kt.Hk,0,b.Limit)
+	if b.isfree(tloc,2) {
+		e = b.WriteKnodBlock(kt,tloc)
+		if e !=nil { return e }
+		e = b.WriteBodyBlock(kb,tloc+1)
+		if e !=nil { return e }
+	}else{
+		st, e := b.ReadKnodBlock(tloc)
+		if e != nil { return e }
+		if st.Hk == kt.Hk {
+			fmt.Println("knod already present")
+		}else{
+			return errors.New("something else here, gotta bounce.")
+		}
+	}
+
+	return e
 }
 
-func (b Base) mintPreULs(){
+func (b Base) mintPreULs() (e error){
+	e = nil
 
 	for _,v:=range preUL {
 		kt,kb := MintLabel(v[0])
 		kt.HashSignVerify ( HASHSIGN, nil,nil,nil,&kb,nil,nil )
 
-		//todo: check for already present before inserting
+		e = b.place2(&kt,&kb)
+		if e != nil {return e}
 
-		tloc:=hash2block(&kt.Hk,0,b.Limit)
-		if b.isfree(tloc,2) {
-			e:=b.WriteKnodBlock(&kt,tloc)
-			if e !=nil {
-				fmt.Printf("error writing knod")
-			}
-			e=b.WriteBodyBlock(&kb,tloc+1)
-			if e !=nil {
-				fmt.Printf("error writing body")
-			}
-		}else{
-			fmt.Printf("guess we have to bounce now")
-			os.Exit(1)
-		}
-		fmt.Println( tloc, kt.Archive() )
+		fmt.Println( kt.Archive() )
 		fmt.Println( kb.Archive() )
 	}
-}
-
-func (b Base) isfree( i uint64, s int) (avail bool) {
-
-   avail = false
-
-   if (s > 0) && (s < 3) {
-
-   fmt.Println("checking to see if block ", i, " with count ",s," is available where the limit is ",b.Limit)
-
-        k1 := make([]byte, 1)
-	k1[0] = 255
-	k2 := make([]byte, 1)
-	k2[0] = 255
-
-
-	if i > b.Limit { return false }
-
-	_, _ = b.Store.Seek(int64(i*256), 0)
-	_, _ = b.Store.Read(k1)
-
-	if (s == 2) && (k1[0]==0) {
-		if i+1 > b.Limit { return false }
-		_, _ = b.Store.Seek(int64((i+1)*256), 0)
-		_, _ = b.Store.Read(k2)
-		if k2[0] == 0 {avail = true}
-	}else{
-		if k1[0] == 0 {avail = true}
-	}
-   }
-
-   return avail
-}
-
-func (b Base) ReadKnodBlock (i uint64 ) (*Knod, error) {
-
-	if i > b.Limit { return nil, errors.New("attempt to read beyond end of store") }
-
-	_, err := b.Store.Seek(int64(i*256), 0)
-	if err != nil {
-	   return nil, err
-	}
-
-	k := Knod{}
-
-	e := binary.Read(b.Store, binary.LittleEndian, &k)
-
-	return &k, e
-}
-
-func (b Base) WriteKnodBlock (k * Knod, i uint64 ) error {
-
-	if i > b.Limit { errors.New("attempt to write beyond end of store") }
-
-	_, err := b.Store.Seek(int64(i*256), 0)
-	if err != nil {
-	   return err
-	}
-
-	e := binary.Write(b.Store, binary.LittleEndian, k)
-
 	return e
 }
 
-func (b Base) ReadBodyBlock (i uint64 ) (*Body, error) {
-
-	if i > b.Limit { return nil, errors.New("attempt to read beyond end of store") }
-
-	_, err := b.Store.Seek(int64(i*256), 0)
-	if err != nil {
-	   return nil, err
-	}
-
-	kb := Body{}
-
-	e := binary.Read(b.Store, binary.LittleEndian, &kb)
-
-	return &kb, e
-}
-
-func (b Base) WriteBodyBlock (kb * Body, i uint64 ) error {
-
-	if i > b.Limit { errors.New("attempt to write beyond end of store") }
-
-	_, err := b.Store.Seek(int64(i*256), 0)
-	if err != nil {
-	   return err
-	}
-
-	e := binary.Write(b.Store, binary.LittleEndian, kb)
-
-	return e
-}
 
 type Kdate [6]byte
 
