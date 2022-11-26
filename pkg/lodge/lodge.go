@@ -99,7 +99,7 @@ func (b Base) Init (fn string, reinit bool) (e error) {
 
 	b.Status = UNINITIALIZED 
 	b.StoreName = fn
-	fmt.Println("\nPreparing Lodge\n")
+	fmt.Println("\nPreparing Lodge")
 
 	baseName := filepath.Base(os.Args[0])
 
@@ -128,9 +128,9 @@ func (b Base) Init (fn string, reinit bool) (e error) {
 			return errors.New("datastore not initialized and reinitialize not requested") 
 		}else{
 			if k.Op == KROOT {
-				fmt.Println("\nRe-initializing Lodge\n")
+				fmt.Println("\nRe-initializing Lodge")
 			}else{
-				fmt.Println("\nInitializing Lodge\n")
+				fmt.Println("\nInitializing Lodge")
 			}
 			k.Op=KROOT
 			e = b.WriteKnodBlock(k,0)
@@ -139,14 +139,14 @@ func (b Base) Init (fn string, reinit bool) (e error) {
 			e = b.mintPreULs()
 			if e != nil {return e}
 
-			fmt.Println("\nPrepared Lodge\n")
+			fmt.Println("\nPrepared Lodge")
 		}
 	}else{
-		fmt.Println("\nServing from Existing Lodge\n")
+		fmt.Println("\nServing from Existing Lodge")
 	}
 
 	b.Status = AVAILABLE
-	fmt.Println("\nLodge available\n")
+	fmt.Println("\nLodge available")
 
 	Emit(baseName)
 
@@ -209,9 +209,9 @@ func (h Hash) Archive() string {
 	return t
 }
 
-func (h Hash) String() string {
-	return fmt.Sprintf("%x",h)
-}
+//func (h Hash) String() string {
+//	return fmt.Sprintf("%s",h)
+//}
 
 type Sign [64] byte
 
