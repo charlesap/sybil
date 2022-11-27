@@ -515,6 +515,3 @@ func Writeout() { // iteratively retrieve from the lodge and write to text file,
 
 }
 
-func Init() { // since nothing will hash to zero, the zero block is the root block for H, P, and R.
-
-}
