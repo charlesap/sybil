@@ -1,8 +1,11 @@
 package lodge
 
 import (
+	"os"
 	"testing"
 	"regexp"
+
+	"github.com/stretchr/testify/assert"
 )
 
 //
@@ -26,8 +29,16 @@ func TestOp2string3(t *testing.T) {
 //
 
 type LodgeTests struct { Test *testing.T}
+
 func TestRunner(t *testing.T) {
 
+    t.Run("A=init", func(t *testing.T) {
+        test:= LodgeTests{Test: t}
+        test.TestInitializeStore()
+//        test.TestCreateConfirmedUser()
+//        test.TestCreateMasterUser()
+//        test.TestCreateUserTwice()
+    })
     t.Run("A=create", func(t *testing.T) {
         test:= LodgeTests{Test: t}
         test.TestCreateRegularUser()
@@ -41,7 +52,27 @@ func TestRunner(t *testing.T) {
 //        test.TestLoginConfirmedUser()
 //        test.TestLoginMasterUser()
     })
+    t.Run("A=cleanup", func(t *testing.T) {
+        test:= LodgeTests{Test: t}
+        test.TestRemoveStore()
+    })
+}
 
+func (t *LodgeTests) TestInitializeStore() {
+    size := int64(1<<30)
+    fd, err := os.Create("test.store")
+    assert.Equal(t.Test, nil, err)
+    _, err = fd.Seek(size-1, 0)
+    assert.Equal(t.Test, nil, err)
+    _, err = fd.Write([]byte{0})
+    assert.Equal(t.Test, nil, err)
+    err = fd.Close()
+    assert.Equal(t.Test, nil, err)
+}
+
+func (t *LodgeTests) TestRemoveStore() {
+    err := os.Remove("test.store")
+    assert.Equal(t.Test, nil, err)
 }
 
 func (t *LodgeTests) TestCreateRegularUser() {
