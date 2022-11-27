@@ -15,8 +15,9 @@ import (
 //	"github.com/nofeaturesonlybugs/z85"
 )
 
-func hash2block( h *Hash, i int, l uint64) uint64 { //i may range from 0 to 19 on bounce to next hash location
+func hash2block( h *Hash, i int, l uint64) (uint64,error) { //i may range from 0 to 19 on bounce to next hash location
 
+	if l < 1 {return 0,errors.New("limit must be greater than zero")}
 	return (uint64(h[i])+
 	      (uint64(h[i+1])<<8)+
 	      (uint64(h[i+2])<<16)+
@@ -24,7 +25,7 @@ func hash2block( h *Hash, i int, l uint64) uint64 { //i may range from 0 to 19 o
 	      (uint64(h[i+4])<<32)+
 	      (uint64(h[i+5])<<40)+
 	      (uint64(h[i+6])<<48)+
-	      (uint64(h[i+7])<<56))%l
+	      (uint64(h[i+7])<<56))%l,nil
 }
 
 
@@ -34,7 +35,7 @@ func (b Base) isfree( i uint64, s int) (avail bool) {
 
    if (s > 0) && (s < 3) {
 
-   fmt.Println("checking to see if block ", i, " with count ",s," is available where the limit is ",b.Limit)
+//   fmt.Println("checking to see if block ", i, " with count ",s," is available where the limit is ",b.Limit)
 
         k1 := make([]byte, 1)
 	k1[0] = 255
@@ -66,7 +67,8 @@ func (b Base) ReadKnodBlock (i uint64 ) (*Knod, error) {
 
 	_, err := b.Store.Seek(int64(i*256), 0)
 	if err != nil {
-	   return nil, err
+		fmt.Println(b.Store)
+		return nil, err
 	}
 
 	k := Knod{}

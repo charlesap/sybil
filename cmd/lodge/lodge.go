@@ -14,6 +14,10 @@ func main() {
 
 	var verb, prod, red, reinit bool
 	var store string
+	var e error
+	var bstruct lodge.Base
+
+	base := &bstruct
 
 	flag.BoolVar(&verb, "v", false, "if true, more logging")
 	flag.BoolVar(&prod, "p", false, "if true, we start HTTPS server")
@@ -23,10 +27,7 @@ func main() {
 
 	flag.Parse()
 
-
-	base := lodge.Base {0,nil,0,"","",""}
-
-	e := base.Init(store,reinit)
+	base, e = base.Init(store,reinit)
 
 	if e != nil {
 		fmt.Printf("lodge error: %s\n", e)

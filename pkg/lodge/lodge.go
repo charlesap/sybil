@@ -76,7 +76,7 @@ type Lodge interface{
 	Prepare() error
 }
 
-func (b Base) Init (fn string, reinit bool) (e error) {
+func (b * Base) Init (fn string, reinit bool) (br * Base, e error) {
 
 	buf, _ := z85.Decode(wpriv85)
 	wpriv = ed25519.PrivateKey(buf)
@@ -105,12 +105,12 @@ func (b Base) Init (fn string, reinit bool) (e error) {
 
 	b.Store, e = os.OpenFile(fn, os.O_RDWR, 0777)
 	if e != nil {
-		return e
+		return nil, e
 	}
 
 	fi, err := b.Store.Stat()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	b.Limit = uint64(fi.Size() / 256)
@@ -120,12 +120,12 @@ func (b Base) Init (fn string, reinit bool) (e error) {
 	var k *Knod
 	k,e = b.ReadKnodBlock(0)
 	if e != nil {
-		return e
+		return nil, e
 	}
 
 	if (k.Op != KROOT) || (reinit == true) {
 		if (k.Op != KROOT) && (reinit == false) {
-			return errors.New("datastore not initialized and reinitialize not requested") 
+			return nil, errors.New("datastore not initialized and reinitialize not requested") 
 		}else{
 			if k.Op == KROOT {
 				fmt.Println("\nRe-initializing Lodge")
@@ -134,10 +134,10 @@ func (b Base) Init (fn string, reinit bool) (e error) {
 			}
 			k.Op=KROOT
 			e = b.WriteKnodBlock(k,0)
-			if e != nil {return e}
+			if e != nil {return nil, e}
 
 			e = b.mintPreULs()
-			if e != nil {return e}
+			if e != nil {return nil, e}
 
 			fmt.Println("\nPrepared Lodge")
 		}
@@ -150,32 +150,34 @@ func (b Base) Init (fn string, reinit bool) (e error) {
 
 	Emit(baseName)
 
-	return e
+
+	return b, e
 }
 
-func (b Base) place2(kt *Knod, kb *Body) (e error) {
+func (b * Base) place2(kt *Knod, kb *Body) (e error) {
 	e = nil
 
-	tloc:=hash2block(&kt.Hk,0,b.Limit)
-	if b.isfree(tloc,2) {
-		e = b.WriteKnodBlock(kt,tloc)
-		if e !=nil { return e }
-		e = b.WriteBodyBlock(kb,tloc+1)
-		if e !=nil { return e }
-	}else{
-		st, e := b.ReadKnodBlock(tloc)
-		if e != nil { return e }
-		if st.Hk == kt.Hk {
-			fmt.Println("knod already present")
+	tloc,e:=hash2block(&kt.Hk,0,b.Limit)
+	if e==nil{
+		if b.isfree(tloc,2) {
+			e = b.WriteKnodBlock(kt,tloc)
+			if e !=nil { return e }
+			e = b.WriteBodyBlock(kb,tloc+1)
+			if e !=nil { return e }
 		}else{
-			return errors.New("something else here, gotta bounce.")
+			st, e := b.ReadKnodBlock(tloc)
+			if e != nil { return e }
+			if st.Hk == kt.Hk {
+				fmt.Println("knod already present")
+			}else{
+				return errors.New("something else here, gotta bounce.")
+			}
 		}
 	}
-
 	return e
 }
 
-func (b Base) mintPreULs() (e error){
+func (b * Base) mintPreULs() (e error){
 	e = nil
 
 	for _,v:=range preUL {
@@ -185,8 +187,8 @@ func (b Base) mintPreULs() (e error){
 		e = b.place2(&kt,&kb)
 		if e != nil {return e}
 
-		fmt.Println( kt.Archive() )
-		fmt.Println( kb.Archive() )
+//		fmt.Println( kt.Archive() )
+//		fmt.Println( kb.Archive() )
 	}
 	return e
 }
@@ -470,15 +472,16 @@ func MintPrincipal(pub, priv []byte) (Knod, Knod, Body, Knod, Body) { // mints a
 func Emit(name string) {
 
 	pub, priv, _ := ed25519.GenerateKey(rand.Reader)
-	t0,t1,b1,t2,b2 := MintPrincipal(pub,priv)
+	_ ,_ ,_ ,_ ,_  = MintPrincipal(pub,priv)
+//	t0,t1,b1,t2,b2 := MintPrincipal(pub,priv)
 
-	fmt.Println( t0.Archive() )
-	fmt.Println( t1.Archive() )
-	fmt.Println( b1.Archive() )
-	fmt.Println( t2.Archive() )
-	fmt.Println( b2.Archive() )
-	fmt.Println()
-	fmt.Println()
+//	fmt.Println( t0.Archive() )
+//	fmt.Println( t1.Archive() )
+//	fmt.Println( b1.Archive() )
+//	fmt.Println( t2.Archive() )
+//	fmt.Println( b2.Archive() )
+//	fmt.Println()
+//	fmt.Println()
 }
 
 func Format() { // write zeros to empty all blocks

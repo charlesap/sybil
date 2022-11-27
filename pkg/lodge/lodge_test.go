@@ -4,7 +4,10 @@ import (
 	"os"
 	"testing"
 	"regexp"
+//	"fmt"
+//	"encoding/binary"
 
+	"github.com/nofeaturesonlybugs/z85"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,38 +33,39 @@ func TestOp2string3(t *testing.T) {
 
 type LodgeTests struct { 
 	Test *testing.T
-	base *Base
 }
 
 func TestRunner(t *testing.T) {
 
+    var base Base
+
+    test:= LodgeTests{Test: t}
+
     t.Run("A=init", func(t *testing.T) {
-        test:= LodgeTests{Test: t}
-        test.TestInitializeStore()
-//        test.TestCreateConfirmedUser()
+        test.TestInitializeStore(&base)
+        test.TestWorldExists(&base)
 //        test.TestCreateMasterUser()
 //        test.TestCreateUserTwice()
     })
     t.Run("A=create", func(t *testing.T) {
-        test:= LodgeTests{Test: t}
         test.TestCreateRegularUser()
 //        test.TestCreateConfirmedUser()
 //        test.TestCreateMasterUser()
 //        test.TestCreateUserTwice()
     })
     t.Run("A=login", func(t *testing.T) {
-        test:= LodgeTests{Test: t}
         test.TestLoginRegularUser()
 //        test.TestLoginConfirmedUser()
 //        test.TestLoginMasterUser()
     })
     t.Run("A=cleanup", func(t *testing.T) {
-        test:= LodgeTests{Test: t}
         test.TestRemoveStore()
     })
 }
 
-func (t *LodgeTests) TestInitializeStore() {
+func (t *LodgeTests) TestInitializeStore(b * Base) {
+
+    var base * Base
 
     size := int64(1<<30)
     fd, err := os.Create("test.store")
@@ -73,16 +77,54 @@ func (t *LodgeTests) TestInitializeStore() {
     err = fd.Close()
     assert.Nil(t.Test,err)
 
-    b:= Base {0,nil,0,"","",""}
-    t.base = &b
-
-    err = t.base.Init("test.store",true)
+    base, err = b.Init("test.store",true)
     assert.Nil(t.Test,err)
+
+    b.Status = base.Status
+    b.Store = base.Store
+    b.Limit = base.Limit
+    b.Fqdn = base.Fqdn
+    b.Subn = base.Subn
+    b.StoreName = base.StoreName
 }
 
 func (t *LodgeTests) TestRemoveStore() {
     err := os.Remove("test.store")
     assert.Equal(t.Test, nil, err)
+}
+
+func (t *LodgeTests) TestWorldExists(b * Base) { //TODO: perform recursion
+
+	var wbinhash []byte
+	var ok error
+	var wbh Hash
+	var tloc uint64
+	var st *Knod
+
+//	fmt.Print(b)
+	e:= assert.NotEqual(t.Test,b.Limit,0) 
+	if e {
+		w85hash := "&URU15#@8/)}XLWy?1hsG0w0v.(O76/e6%P"
+		wbinhash, ok = z85.Decode(w85hash)
+		e = assert.Nil(t.Test,ok)
+	}
+	if e {
+		for i:=0;i<28;i++{wbh[i]=wbinhash[i]}
+//		fmt.Println(" : ",b.Limit)
+		tloc, ok = hash2block(&wbh,0,b.Limit)
+		e = assert.Nil(t.Test,ok)
+	}
+//	fmt.Println("tloc: ",tloc)
+	if e {
+		st, ok = b.ReadKnodBlock(tloc)
+		e = assert.Nil(t.Test,ok)
+	}
+	if e {
+		m := true
+		for i:=0;i<28;i++{if st.Hk[i]!=wbinhash[i] {m=false;}}
+		e = assert.Equal(t.Test,m,true)
+	}
+
 }
 
 func (t *LodgeTests) TestCreateRegularUser() {
