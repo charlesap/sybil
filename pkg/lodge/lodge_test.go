@@ -28,7 +28,10 @@ func TestOp2string3(t *testing.T) {
 // procedural tests
 //
 
-type LodgeTests struct { Test *testing.T}
+type LodgeTests struct { 
+	Test *testing.T
+	base *Base
+}
 
 func TestRunner(t *testing.T) {
 
@@ -59,15 +62,22 @@ func TestRunner(t *testing.T) {
 }
 
 func (t *LodgeTests) TestInitializeStore() {
+
     size := int64(1<<30)
     fd, err := os.Create("test.store")
-    assert.Equal(t.Test, nil, err)
+    assert.Nil(t.Test,err)
     _, err = fd.Seek(size-1, 0)
-    assert.Equal(t.Test, nil, err)
+    assert.Nil(t.Test,err)
     _, err = fd.Write([]byte{0})
-    assert.Equal(t.Test, nil, err)
+    assert.Nil(t.Test,err)
     err = fd.Close()
-    assert.Equal(t.Test, nil, err)
+    assert.Nil(t.Test,err)
+
+    b:= Base {0,nil,0,"","",""}
+    t.base = &b
+
+    err = t.base.Init("test.store",true)
+    assert.Nil(t.Test,err)
 }
 
 func (t *LodgeTests) TestRemoveStore() {
