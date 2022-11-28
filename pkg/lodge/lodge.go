@@ -58,6 +58,7 @@ var (
 			    {"en---:Secret",     "es---:Secreto",          "fr---:Secret",         "cn---:秘密",    "jp---:ひみつ",          "de---:Geheimnis" },
 			    {"en---:Instance",   "es---:Instancia",        "fr---:Exemple",        "cn---:实例",    "jp---:実例",            "de---:Beispiel" },
 			    {"en---:Principal",  "es---:principal",        "fr---:Directeur",      "cn---:主要的",  "jp---:主要",            "de---:Rektor" },
+			    {"en---:Layout",     "es---:Diseño",           "fr---:Disposition",    "cn---:布局",    "jp---:レイアウト",      "de---:Layout" },
 			    {"en---:Session",    "es---:Sesión",           "fr---:Session",        "cn---:会议",    "jp---:セッション",      "de---:Sitzung" },
 			    {"en---:Category",   "es---:Categoría",        "fr---:Catégorie",      "cn---:类别",    "jp---:カテゴリー",      "de---:Kategorie" },
 			    {"en---:Timekeeper", "es---:Cronometrador",    "fr---:Chronométreur",  "cn---:计时员",  "jp---:タイムキーパー",  "de---:Zeitnehmer" },
