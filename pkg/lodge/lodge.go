@@ -144,7 +144,10 @@ func (b * Base) Init (fn string, reinit bool) (br * Base, e error) {
 			e = b.LoadPreULs()
 			if e != nil {return nil, e}
 
-			e = b.LoadLocalTemporacle()
+			e = b.SetWorld()
+			if e != nil {return nil, e}
+
+			e = b.SetLocalTemporacle()
 			if e != nil {return nil, e}
 
 
@@ -252,8 +255,19 @@ func (b * Base) LoadPreULs() (e error){
 	return e
 }
 
+func (b * Base) SetWorld() (e error){
+	e = nil
 
-func (b * Base) LoadLocalTemporacle() (e error){
+//		kt,kb := MintWorld()
+//		kt.HashSignVerify ( HASHSIGN, nil,nil,nil,nil,nil,nil )
+
+//		e = b.place2(&kt,&kb)
+//		if e != nil {return e}
+	return e
+}
+
+
+func (b * Base) SetLocalTemporacle() (e error){
 	e = nil
 
 //	for _,v:=range preUL {

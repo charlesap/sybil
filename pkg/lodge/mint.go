@@ -53,6 +53,14 @@ func MintLabel(s string) (Knod, Body) { // mints a universal label from a string
 	return k,b
 }
 
+func MintWorld(p Knod) (Knod) { // The world is tagged with the World label and is contained by nothing and refers to nothing
+
+	w := ZeroKnod()
+	w.Op = 1
+	//update tag field here
+	return w
+}
+
 func MintCategory(p Knod, s string) (c Knod) { // mints a category record for a principal
 
 	return c
