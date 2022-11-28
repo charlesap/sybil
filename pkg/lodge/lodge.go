@@ -9,7 +9,7 @@ import (
 	"crypto/rand"
 	"crypto/ed25519"
 	"crypto/sha256"
-        "path/filepath"
+//	"path/filepath"
 //	"encoding/binary"
 
 	"github.com/nofeaturesonlybugs/z85"
@@ -51,6 +51,7 @@ var (
 	wpub   ed25519.PublicKey    // for content universally signed identically by anyone
 	wpriv  ed25519.PrivateKey
 	preUL = [][]string {{"en---:World",      "es---:Mundo",            "fr---:Monde",          "cn---:世界",    "jp---:世界",            "de---:Welt" },
+			    {"en---:Log",        "es---:cuaderno",         "fr---:registre",       "cn---:航海日志","jp---:日誌",            "de---:Journal" },
 			    {"en---:Day",        "es---:Día",              "fr---:Jour",           "cn---:天",      "jp---:日",              "de---:Tag" },
 			    {"en---:Lodge",      "es---:Alojarse",         "fr---:Hôtel",          "cn---:小屋",    "jp---:ロッジ",          "de---:Hütte" },
 			    {"en---:Keychain",   "es---:Llavero",          "fr---:Porte-clés",     "cn---:钥匙链",  "jp---:キーホルダー",    "de---:Schlüsselbund" },
@@ -58,6 +59,7 @@ var (
 			    {"en---:Instance",   "es---:Instancia",        "fr---:Exemple",        "cn---:实例",    "jp---:実例",            "de---:Beispiel" },
 			    {"en---:Principal",  "es---:principal",        "fr---:Directeur",      "cn---:主要的",  "jp---:主要",            "de---:Rektor" },
 			    {"en---:Session",    "es---:Sesión",           "fr---:Session",        "cn---:会议",    "jp---:セッション",      "de---:Sitzung" },
+			    {"en---:Category",   "es---:Categoría",        "fr---:Catégorie",      "cn---:类别",    "jp---:カテゴリー",      "de---:Kategorie" },
 			    {"en---:Timekeeper", "es---:Cronometrador",    "fr---:Chronométreur",  "cn---:计时员",  "jp---:タイムキーパー",  "de---:Zeitnehmer" },
 			    {"en---:Timestamp",  "es---:Marca de Tiempo",  "fr---:Horodatage",     "cn---:时间戳",  "jp---:タイムスタンプ",  "de---:Zeitstempel" }}
 )
@@ -104,7 +106,7 @@ func (b * Base) Init (fn string, reinit bool) (br * Base, e error) {
 	b.StoreName = fn
 	fmt.Println("\nPreparing Lodge")
 
-	baseName := filepath.Base(os.Args[0])
+//	baseName := filepath.Base(os.Args[0])
 
 	b.Store, e = os.OpenFile(fn, os.O_RDWR, 0777)
 	if e != nil {
@@ -139,8 +141,20 @@ func (b * Base) Init (fn string, reinit bool) (br * Base, e error) {
 			e = b.WriteKnodBlock(k,0)
 			if e != nil {return nil, e}
 
-			e = b.mintPreULs()
+			e = b.LoadPreULs()
 			if e != nil {return nil, e}
+
+			e = b.LoadLocalTemporacle()
+			if e != nil {return nil, e}
+
+
+			pub, priv, _ := ed25519.GenerateKey(rand.Reader)
+			_ ,_ ,_ ,_ ,_  = MintPrincipal(pub,priv)
+//			t0,t1,b1,t2,b2 := MintPrincipal(pub,priv)
+
+
+
+
 
 			fmt.Println("\nPrepared Lodge")
 		}
@@ -151,7 +165,7 @@ func (b * Base) Init (fn string, reinit bool) (br * Base, e error) {
 	b.Status = AVAILABLE
 	fmt.Println("\nLodge available")
 
-	Emit(baseName)
+//	Emit(baseName)
 
 
 	return b, e
@@ -225,7 +239,7 @@ func (b * Base) Get0 ( h * Hash) (k * Knod, found bool){ //TODO: perform recursi
 	return st, found
 }
 
-func (b * Base) mintPreULs() (e error){
+func (b * Base) LoadPreULs() (e error){
 	e = nil
 
 	for _,v:=range preUL {
@@ -234,10 +248,23 @@ func (b * Base) mintPreULs() (e error){
 
 		e = b.place2(&kt,&kb)
 		if e != nil {return e}
-
-//		fmt.Println( kt.Archive() )
-//		fmt.Println( kb.Archive() )
 	}
+	return e
+}
+
+
+func (b * Base) LoadLocalTemporacle() (e error){
+	e = nil
+
+//	for _,v:=range preUL {
+//		kt,kd,kc := MintTemporacle()
+//		kt.HashSignVerify ( HASHSIGN, nil,nil,nil,nil,nil,nil )
+//		kd.HashSignVerify ( HASHSIGN, nil,nil,nil,nil,nil,nil )
+//		kc.HashSignVerify ( HASHSIGN, nil,nil,nil,nil,nil,nil )
+//
+//		e = b.place2(&kt,&kb)
+//		if e != nil {return e}
+//	}
 	return e
 }
 
@@ -434,103 +461,6 @@ func (k *Knod) HashSignVerify (svo int, ks,kp,kt *Knod, b,bs,bv *Body ) (ok bool
 	return ok
 }
 
-func ZeroBody () Body {
-	return Body { 0, Btlen { 0, 0, 0 }, Btext {
-		32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
-		32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
-		32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
-		32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
-		32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
-		32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
-		32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
-		32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32}}
-}
-
-func ZeroKnod () Knod {
-
-	return Knod {
-	0,
-	0,
-	Kdate {0,0,0,0,0,0},
-	Hash {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-	Hash {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-	0,
-	Kndx {0,0,0,0,0,0},
-	Kndx {0,0,0,0,0,0},
-	Slst {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-	0,
-	Kndx {0,0,0,0,0,0},
-	Kndx {0,0,0,0,0,0},
-	Slst {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-	Sign {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}}
-
-}
-
-func MintLabel(s string) (Knod, Body) { // mints a universal label from a string up to 252 characters in length
-
-	k:= ZeroKnod()
-	b:= ZeroBody()
-	k.Op = 1
-	b.Mode = 254
-	l := len(s)
-	b.Len[0]=byte(l%256) // bytes 1 and 2 will be zero
-	for i:=0;i<l && i < 252; i++ {
-		b.Text[i]=s[i]
-	}
-	return k,b
-}
-
-// temporacles have null Hr, all other principals have an Hr pointing to a timestamp generated by a temporacle
-
-func MintPrincipal(pub, priv []byte) (Knod, Knod, Body, Knod, Body) { // mints a principal entity from an ed25519 private key and an ed25519 public key
-
-	k0:= ZeroKnod()
-	k0.Op = 4
-
-	k1:= ZeroKnod()
-	b1:= ZeroBody()
-	k1.Op = 2
-	b1.Mode = 254
-
-//	pub, priv, _ := ed25519.GenerateKey(rand.Reader)
-	pub85, _ := z85.Encode(pub[:])
-	priv85, _ := z85.Encode(priv[:])
-
-	l := len(pub85)
-	b1.Len[0]=byte(l%256) // bytes 1 and 2 will be zero
-	for i:=0;i<l && i < 252; i++ {
-		b1.Text[i]=pub85[i]
-	}
-
-	k2:= ZeroKnod()
-	b2:= ZeroBody()
-	k2.Op = 3
-	b2.Mode = 254
-
-	l = len(priv85)
-	b2.Len[0]=byte(l%256) // bytes 1 and 2 will be zero
-	for i:=0;i<l && i < 252; i++ {
-		b2.Text[i]=priv85[i]
-	}
-
-
-	return k0,k1,b1,k2,b2
-}
-
-func Emit(name string) {
-
-	pub, priv, _ := ed25519.GenerateKey(rand.Reader)
-	_ ,_ ,_ ,_ ,_  = MintPrincipal(pub,priv)
-//	t0,t1,b1,t2,b2 := MintPrincipal(pub,priv)
-
-//	fmt.Println( t0.Archive() )
-//	fmt.Println( t1.Archive() )
-//	fmt.Println( b1.Archive() )
-//	fmt.Println( t2.Archive() )
-//	fmt.Println( b2.Archive() )
-//	fmt.Println()
-//	fmt.Println()
-}
 
 func Format() { // write zeros to empty all blocks
 
