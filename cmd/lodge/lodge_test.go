@@ -7,7 +7,7 @@ import (
 //	"fmt"
 //	"encoding/binary"
 
-	"github.com/nofeaturesonlybugs/z85"
+//	"github.com/nofeaturesonlybugs/z85"
 	"github.com/stretchr/testify/assert"
         "github.com/charlesap/sybil/pkg/lodge"
 )
@@ -43,7 +43,6 @@ func TestRunner(t *testing.T) {
 
     t.Run("A=init", func(t *testing.T) {
         cmdtest.TestInitializeStore(&base)
-        cmdtest.TestWorldExists(&base)
 //        test.TestCreateMasterUser()
 //        test.TestCreateUserTwice()
     })
@@ -75,39 +74,6 @@ func (t *LodgeCmdTests) TestRemoveStore() {
     assert.Equal(t.Test, nil, err)
 }
 
-func (t *LodgeCmdTests) TestWorldExists(b * lodge.Base) { //TODO: perform recursion
-
-	var wbinhash []byte
-	var ok error
-	var wbh lodge.Hash
-	var tloc uint64
-	var st *lodge.Knod
-
-//	fmt.Print(b)
-	e:= assert.NotEqual(t.Test,b.Limit,0) 
-	if e {
-		w85hash := "&URU15#@8/)}XLWy?1hsG0w0v.(O76/e6%P"
-		wbinhash, ok = z85.Decode(w85hash)
-		e = assert.Nil(t.Test,ok)
-	}
-	if e {
-		for i:=0;i<28;i++{wbh[i]=wbinhash[i]}
-//		fmt.Println(" : ",b.Limit)
-		tloc, ok = lodge.Hash2block(&wbh,0,b.Limit)
-		e = assert.Nil(t.Test,ok)
-	}
-//	fmt.Println("tloc: ",tloc)
-	if e {
-		st, ok = b.ReadKnodBlock(tloc)
-		e = assert.Nil(t.Test,ok)
-	}
-	if e {
-		m := true
-		for i:=0;i<28;i++{if st.Hk[i]!=wbinhash[i] {m=false;}}
-		e = assert.Equal(t.Test,m,true)
-	}
-
-}
 
 func (t *LodgeCmdTests) TestCreateRegularUser() {
 //    registerRegularUser := util.TableTest{

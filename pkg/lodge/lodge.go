@@ -208,6 +208,24 @@ func (b * Base) place2(kt *Knod, kb *Body) (e error) {
 	return e
 }
 
+func (b * Base) Get0 ( h * Hash) (k * Knod, found bool){ //TODO: perform recursion
+
+	var ok error
+	var tloc uint64
+	var st *Knod
+
+	tloc, ok = Hash2block(h,0,b.Limit)
+	if ok != nil{ return k, false}
+
+	st, ok = b.ReadKnodBlock(tloc)
+	if ok != nil{ return k, false}
+
+	found = true
+	for i:=0;i<28;i++{if st.Hk[i]!=h[i] {found=false;}}
+
+	return st, found
+}
+
 func (b * Base) mintPreULs() (e error){
 	e = nil
 

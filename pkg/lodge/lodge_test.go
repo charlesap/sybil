@@ -78,36 +78,12 @@ func (t *LodgePkgTests) TestRemoveStore() {
 
 func (t *LodgePkgTests) TestWorldExists(b * Base) { //TODO: perform recursion
 
-	var wbinhash []byte
-	var ok error
+	w85 := "&URU15#@8/)}XLWy?1hsG0w0v.(O76/e6%P"
+	wb, _ := z85.Decode(w85)
 	var wbh Hash
-	var tloc uint64
-	var st *Knod
-
-//	fmt.Print(b)
-	e:= assert.NotEqual(t.Test,b.Limit,0) 
-	if e {
-		w85hash := "&URU15#@8/)}XLWy?1hsG0w0v.(O76/e6%P"
-		wbinhash, ok = z85.Decode(w85hash)
-		e = assert.Nil(t.Test,ok)
-	}
-	if e {
-		for i:=0;i<28;i++{wbh[i]=wbinhash[i]}
-//		fmt.Println(" : ",b.Limit)
-		tloc, ok = Hash2block(&wbh,0,b.Limit)
-		e = assert.Nil(t.Test,ok)
-	}
-//	fmt.Println("tloc: ",tloc)
-	if e {
-		st, ok = b.ReadKnodBlock(tloc)
-		e = assert.Nil(t.Test,ok)
-	}
-	if e {
-		m := true
-		for i:=0;i<28;i++{if st.Hk[i]!=wbinhash[i] {m=false;}}
-		e = assert.Equal(t.Test,m,true)
-	}
-
+	for i:=0;i<28;i++{wbh[i]=wb[i]}
+	_,found := b.Get0(&wbh)
+	assert.True(t.Test,found)
 }
 
 func (t *LodgePkgTests) TestCreateRegularUser() {
