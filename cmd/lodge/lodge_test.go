@@ -1,4 +1,4 @@
-package lodge
+package main
 
 import (
 	"os"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/nofeaturesonlybugs/z85"
 	"github.com/stretchr/testify/assert"
+        "github.com/charlesap/sybil/pkg/lodge"
 )
 
 //
@@ -20,69 +21,67 @@ import (
 func TestOp2string3(t *testing.T) {
     var op byte = 3
     want := regexp.MustCompile(`PRIVT`)
-    msg  := Op2string(op)
+    msg  := lodge.Op2string(op)
     if !want.MatchString(msg) {
         t.Fatalf(`Op2string(3) = %q, want match for %#q`, msg, want)
     }
 }
 
-
 //
 // procedural tests
 //
 
-type LodgePkgTests struct { 
+type LodgeCmdTests struct {
 	Test *testing.T
 }
 
 func TestRunner(t *testing.T) {
 
-    var base Base
+    var base lodge.Base
 
-    test:= LodgePkgTests{Test: t}
+    cmdtest:= LodgeCmdTests{Test: t}
 
     t.Run("A=init", func(t *testing.T) {
-        test.TestInitializeStore(&base)
-        test.TestWorldExists(&base)
+        cmdtest.TestInitializeStore(&base)
+        cmdtest.TestWorldExists(&base)
 //        test.TestCreateMasterUser()
 //        test.TestCreateUserTwice()
     })
     t.Run("A=create", func(t *testing.T) {
-        test.TestCreateRegularUser()
+        cmdtest.TestCreateRegularUser()
 //        test.TestCreateConfirmedUser()
 //        test.TestCreateMasterUser()
 //        test.TestCreateUserTwice()
     })
     t.Run("A=login", func(t *testing.T) {
-        test.TestLoginRegularUser()
+        cmdtest.TestLoginRegularUser()
 //        test.TestLoginConfirmedUser()
 //        test.TestLoginMasterUser()
     })
     t.Run("A=cleanup", func(t *testing.T) {
-        test.TestRemoveStore()
+        cmdtest.TestRemoveStore()
     })
 }
 
-func (t *LodgePkgTests) TestInitializeStore(b * Base) {
+func (t *LodgeCmdTests) TestInitializeStore(b * lodge.Base) {
 
-    base, err := ScratchStore("test.store")
-    assert.Nil(t.Test,err)
-    Dupstore(base,b)
-
+	base, err := lodge.ScratchStore("test.store")
+	assert.Nil(t.Test,err)
+	lodge.Dupstore(base,b)
 }
 
-func (t *LodgePkgTests) TestRemoveStore() {
+func (t *LodgeCmdTests) TestRemoveStore() {
     err := os.Remove("test.store")
     assert.Equal(t.Test, nil, err)
 }
 
-func (t *LodgePkgTests) TestWorldExists(b * Base) { //TODO: perform recursion
+func (t *LodgeCmdTests) TestWorldExists(b * lodge.Base) { //TODO: perform recursion
 
 	var wbinhash []byte
 	var ok error
-	var wbh Hash
+	var wbh lodge.Hash
 	var tloc uint64
-	var st *Knod
+	var st *lodge.Knod
 
 //	fmt.Print(b)
 	e:= assert.NotEqual(t.Test,b.Limit,0) 
@@ -94,7 +93,7 @@ func (t *LodgePkgTests) TestWorldExists(b * Base) { //TODO: perform recursion
 	if e {
 		for i:=0;i<28;i++{wbh[i]=wbinhash[i]}
 //		fmt.Println(" : ",b.Limit)
-		tloc, ok = Hash2block(&wbh,0,b.Limit)
+		tloc, ok = lodge.Hash2block(&wbh,0,b.Limit)
 		e = assert.Nil(t.Test,ok)
 	}
 //	fmt.Println("tloc: ",tloc)
@@ -110,7 +109,7 @@ func (t *LodgePkgTests) TestWorldExists(b * Base) { //TODO: perform recursion
 
 }
 
-func (t *LodgePkgTests) TestCreateRegularUser() {
+func (t *LodgeCmdTests) TestCreateRegularUser() {
 //    registerRegularUser := util.TableTest{
 //        Method:      "POST",
 //        Path:        "/iot/users",
@@ -123,5 +122,6 @@ func (t *LodgePkgTests) TestCreateRegularUser() {
 //    util.LogIfVerbose(color.BgCyan, "IOT/USERS/TEST", response)
 }
 
-func (t *LodgePkgTests) TestLoginRegularUser() {
+func (t *LodgeCmdTests) TestLoginRegularUser() {
 }
+

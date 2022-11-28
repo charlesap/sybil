@@ -78,6 +78,9 @@ type Lodge interface{
 
 func (b * Base) Init (fn string, reinit bool) (br * Base, e error) {
 
+	var base Base
+	b = &base
+
 	buf, _ := z85.Decode(wpriv85)
 	wpriv = ed25519.PrivateKey(buf)
 	buf, _ =  z85.Decode(wpub85)
@@ -152,6 +155,34 @@ func (b * Base) Init (fn string, reinit bool) (br * Base, e error) {
 
 
 	return b, e
+}
+
+func Dupstore( s *Base, d *Base){
+
+	d.Status = s.Status
+	d.Store = s.Store
+	d.Limit = s.Limit
+	d.Fqdn = s.Fqdn
+	d.Subn = s.Subn
+	d.StoreName = s.StoreName
+}
+
+func ScratchStore(fn string)(b *Base, e error){
+
+	size := int64(1<<30)
+	fd, e := os.Create(fn)
+	if e != nil {return b,e}
+	_, e = fd.Seek(size-1, 0)
+	if e != nil {return b,e}
+	_, e = fd.Write([]byte{0})
+	if e != nil {return b,e}
+	e = fd.Close()
+	if e != nil {return b,e}
+
+	b, e = b.Init(fn,true)
+	if e != nil {return b,e}
+
+	return b,e
 }
 
 func (b * Base) place2(kt *Knod, kb *Body) (e error) {
