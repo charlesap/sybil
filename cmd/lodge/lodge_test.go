@@ -64,7 +64,7 @@ func TestRunner(t *testing.T) {
 
 func (t *LodgeCmdTests) TestInitializeStore(b * lodge.Base) {
 
-	base, err := lodge.ScratchStore("test.store")
+	base, err := lodge.NewStore("test.store",1<<30)
 	assert.Nil(t.Test,err)
 	lodge.Dupstore(base,b)
 }

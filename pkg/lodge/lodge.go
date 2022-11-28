@@ -167,9 +167,8 @@ func Dupstore( s *Base, d *Base){
 	d.StoreName = s.StoreName
 }
 
-func ScratchStore(fn string)(b *Base, e error){
+func NewStore(fn string, size int64)(b *Base, e error){
 
-	size := int64(1<<30)
 	fd, e := os.Create(fn)
 	if e != nil {return b,e}
 	_, e = fd.Seek(size-1, 0)

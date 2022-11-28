@@ -65,7 +65,7 @@ func TestRunner(t *testing.T) {
 
 func (t *LodgePkgTests) TestInitializeStore(b * Base) {
 
-    base, err := ScratchStore("test.store")
+    base, err := NewStore("test.store",1<<30)
     assert.Nil(t.Test,err)
     Dupstore(base,b)
 
