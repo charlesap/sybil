@@ -283,8 +283,7 @@ func (b * Base) SetLocalTemporacle() (e error){
 	return e
 }
 
-
-type Kdate [6]byte
+type Kdate [5]byte
 
 type Btlen [3]byte
 
@@ -320,9 +319,12 @@ type Cksm  uint32 // checksum of checksums of nodes held by this node or
                   // checksum of checksums of nodes referring to this node
 
 
+// 1 Op, 1 subl, 1 subh, 5 date no Idpt to allow 16-bit sub-indexing of reference hashes 
+
 type Knod struct{ // 256 bytes // knowledge node, Tnod is a text representation
 	Op   byte  // op except 0 = hash slot free, 255 = hash slot available due to allocation bounce on content size
-	Idpt byte  // principal signer depth, 1 = self
+	Subl byte  // index within reference (low)
+	Subh byte  // index within reference (high)
 	Date Kdate
 	Hk   Hash
 	Hr   Hash
@@ -372,8 +374,8 @@ func (k Knod) UnixTime() time.Time {
 	                  int64(k.Date[1])*256+
 	                  int64(k.Date[2])*65536+
 	                  int64(k.Date[3])*16777216+
-	                  int64(k.Date[4])*4294967296+
-	                  int64(k.Date[5])*1099511627776,0)
+	                  int64(k.Date[4])*4294967296,0)
+//	                  int64(k.Date[5])*1099511627776,0)
 }
 
 func (k Knod) Archive() string {
@@ -407,8 +409,9 @@ func (k *Knod) HashSignVerify (svo int, ks,kp,kt *Knod, b,bs,bv *Body ) (ok bool
 
 	// knod signature form without body text in bytes:
 	// 1  @ 0 Op, universal LABEL is 1
-	// 1  @ 1 Depth, zero if universal label
-	// 6  @ 2 Date
+	// 1  @ 1 Low byte of index into reference
+	// 1  @ 2 High byte of index into reference
+	// 5  @ 3 Date
 	// 28 @ 8 Self hash
 	// 28 @ 36 Reference hash, may be zeros if universal label or not-referring, may be dangling (not have a native knod to refer to)
 	// 28 @ 64 Hash of signer, may be zeros if universal label, in which case signed by wpriv
@@ -432,8 +435,9 @@ func (k *Knod) HashSignVerify (svo int, ks,kp,kt *Knod, b,bs,bv *Body ) (ok bool
 	buf := make([]byte,148+blen) // relying on being initialized to zero
 
 	buf[0] = k.Op
-	buf[1] = k.Idpt
-	for i:=0;i<6;i++ { buf [2+i]= k.Date[i] }
+	buf[1] = k.Subl
+	buf[2] = k.Subh
+	for i:=0;i<5;i++ { buf [3+i]= k.Date[i] }
 	if k.Op != LABEL { for i:=0;i<28;i++ { buf [36+i]= k.Hr[i] } }
 	if k.Op != LABEL { for i:=0;i<28;i++ { buf [64+i]= ks.Hk[i] } }
 	if k.Op != LABEL { for i:=0;i<28;i++ { buf [92+i]= kp.Hk[i] } }
