@@ -31,7 +31,7 @@ func TestOp2string3(t *testing.T) {
 // procedural tests
 //
 
-type LodgeTests struct { 
+type LodgePkgTests struct { 
 	Test *testing.T
 }
 
@@ -39,7 +39,7 @@ func TestRunner(t *testing.T) {
 
     var base Base
 
-    test:= LodgeTests{Test: t}
+    test:= LodgePkgTests{Test: t}
 
     t.Run("A=init", func(t *testing.T) {
         test.TestInitializeStore(&base)
@@ -63,7 +63,7 @@ func TestRunner(t *testing.T) {
     })
 }
 
-func (t *LodgeTests) TestInitializeStore(b * Base) {
+func (t *LodgePkgTests) TestInitializeStore(b * Base) {
 
     var base * Base
 
@@ -88,12 +88,12 @@ func (t *LodgeTests) TestInitializeStore(b * Base) {
     b.StoreName = base.StoreName
 }
 
-func (t *LodgeTests) TestRemoveStore() {
+func (t *LodgePkgTests) TestRemoveStore() {
     err := os.Remove("test.store")
     assert.Equal(t.Test, nil, err)
 }
 
-func (t *LodgeTests) TestWorldExists(b * Base) { //TODO: perform recursion
+func (t *LodgePkgTests) TestWorldExists(b * Base) { //TODO: perform recursion
 
 	var wbinhash []byte
 	var ok error
@@ -111,7 +111,7 @@ func (t *LodgeTests) TestWorldExists(b * Base) { //TODO: perform recursion
 	if e {
 		for i:=0;i<28;i++{wbh[i]=wbinhash[i]}
 //		fmt.Println(" : ",b.Limit)
-		tloc, ok = hash2block(&wbh,0,b.Limit)
+		tloc, ok = Hash2block(&wbh,0,b.Limit)
 		e = assert.Nil(t.Test,ok)
 	}
 //	fmt.Println("tloc: ",tloc)
@@ -127,7 +127,7 @@ func (t *LodgeTests) TestWorldExists(b * Base) { //TODO: perform recursion
 
 }
 
-func (t *LodgeTests) TestCreateRegularUser() {
+func (t *LodgePkgTests) TestCreateRegularUser() {
 //    registerRegularUser := util.TableTest{
 //        Method:      "POST",
 //        Path:        "/iot/users",
@@ -140,5 +140,5 @@ func (t *LodgeTests) TestCreateRegularUser() {
 //    util.LogIfVerbose(color.BgCyan, "IOT/USERS/TEST", response)
 }
 
-func (t *LodgeTests) TestLoginRegularUser() {
+func (t *LodgePkgTests) TestLoginRegularUser() {
 }

@@ -157,7 +157,7 @@ func (b * Base) Init (fn string, reinit bool) (br * Base, e error) {
 func (b * Base) place2(kt *Knod, kb *Body) (e error) {
 	e = nil
 
-	tloc,e:=hash2block(&kt.Hk,0,b.Limit)
+	tloc,e:=Hash2block(&kt.Hk,0,b.Limit)
 	if e==nil{
 		if b.isfree(tloc,2) {
 			e = b.WriteKnodBlock(kt,tloc)

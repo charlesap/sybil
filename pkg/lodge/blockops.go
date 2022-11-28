@@ -15,7 +15,7 @@ import (
 //	"github.com/nofeaturesonlybugs/z85"
 )
 
-func hash2block( h *Hash, i int, l uint64) (uint64,error) { //i may range from 0 to 19 on bounce to next hash location
+func Hash2block( h *Hash, i int, l uint64) (uint64,error) { //i may range from 0 to 19 on bounce to next hash location
 
 	if l < 1 {return 0,errors.New("limit must be greater than zero")}
 	return (uint64(h[i])+
