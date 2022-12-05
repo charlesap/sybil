@@ -328,15 +328,38 @@ type Knod struct{ // 256 bytes // knowledge node, Tnod is a text representation
 	Date Kdate
 	Hk   Hash
 	Hr   Hash
+	Ttag Kndx
 	Pchk Cksm  // checksum of Rchk of nodes held... if two lodges differ on this, synchronization is indicated
-	Itag Kndx  // index to a well-known universal label for un-tracked tagging, expanded to hash on transmission or zero, also may be used as salt
 	Ptag Kndx
 	Tp   Slst
+	Itag Kndx  // index to a well-known universal label for un-tracked tagging, expanded to hash on transmission or zero, also may be used as salt
 	Rchk Cksm  // checksum of Pchk of nodes held... if two lodges differ on this, synchronization is indicated
-	Ttag Kndx 
 	Rtag Kndx
 	Tr   Slst
 	S    Sign
+}
+
+type tBody struct{ // 256 bytes // extra indices for a knod
+	Op   byte  // 0
+	Apad [5]byte  // 1
+	Achk Cksm  // 6
+	Atag Kndx  // 10
+	Ta   Slst  // 16
+
+	Bpad [6]byte  // 64
+	Bchk Cksm  // 70
+	Btag Kndx  // 74
+	Tb   Slst  // 80
+
+	Cpad [6]byte  // 128
+	Cchk Cksm  // 134
+	Ctag Kndx  // 138
+	Tc   Slst  // 144
+
+	Dpad [6]byte  // 192
+	Dchk Cksm  // 198
+	Dtag Kndx  // 202
+	Td   Slst  // 208
 }
 
 func Op2string(o byte) string {
