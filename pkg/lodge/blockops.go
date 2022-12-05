@@ -78,16 +78,19 @@ func (b Base) ReadKnodBlock (i uint64 ) (*Knod, error) {
 	return &k, e
 }
 
-func (b Base) WriteKnodBlock (k * Knod, i uint64 ) error {
+func (b Base) WriteKnodBlock (k * Knod, i uint64 ) (e error) {
 
-	if i > b.Limit { errors.New("attempt to write beyond end of store") }
-
-	_, err := b.Store.Seek(int64(i*256), 0)
-	if err != nil {
-	   return err
+	if i > b.Limit { e = errors.New("attempt to write beyond end of store") }
+	if e != nil {
+	   return e
 	}
 
-	e := binary.Write(b.Store, binary.LittleEndian, k)
+	_, e = b.Store.Seek(int64(i*256), 0)
+	if e != nil {
+	   return e
+	}
+
+	e = binary.Write(b.Store, binary.LittleEndian, k)
 
 	return e
 }
@@ -108,16 +111,19 @@ func (b Base) ReadBodyBlock (i uint64 ) (*Body, error) {
 	return &kb, e
 }
 
-func (b Base) WriteBodyBlock (kb * Body, i uint64 ) error {
+func (b Base) WriteBodyBlock (kb * Body, i uint64 ) (e error) {
 
-	if i > b.Limit { errors.New("attempt to write beyond end of store") }
-
-	_, err := b.Store.Seek(int64(i*256), 0)
-	if err != nil {
-	   return err
+	if i > b.Limit { e = errors.New("attempt to write beyond end of store") }
+	if e != nil {
+	   return e
 	}
 
-	e := binary.Write(b.Store, binary.LittleEndian, kb)
+	_, e = b.Store.Seek(int64(i*256), 0)
+	if e != nil {
+	   return e
+	}
+
+	e = binary.Write(b.Store, binary.LittleEndian, kb)
 
 	return e
 }
